@@ -8,6 +8,8 @@ canvas.height = window.innerHeight;
 
 let perlin = new Simple1DNoise();
 let camera_offset = {x: 0, y: 0};
+
+let clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 class Player {
     constructor(x, y, width, height, color, weight, fuel) {
         this.x = x;
@@ -58,7 +60,7 @@ class Player {
     }
     update() {
         this.move(this.force.x, this.force.y);
-        this.force.y += 0.000981*2 + this.force.y/this.weight/20;
+        this.force.y += 0.000981*2 + clamp(this.force.y/this.weight/20, -0.000981, 0.000981);
         this.force.x *= 0.999;
     }
     draw() {
@@ -80,7 +82,7 @@ function drawTerrain(player) {
     ctx.moveTo(player.x > 0 ? -player.x : -camera_offset.x, canvas.height);
     // i made this to always start at a number divisible by 40, in this way the starting point of each line don't change at each offset
     let start_pos = -Math.floor(camera_offset.x/40)*40 - 40;
-    for (let i = start_pos; i < canvas.width + player.x ; i+=40) 
+    for (let i = start_pos; i < canvas.width + player.x; i+=40) 
         ctx.lineTo(i+camera_offset.x, perlin.getVal(i/200)*500+camera_offset.y);
     ctx.lineTo(canvas.width + (player.x > 0 ?  player.x : camera_offset.x), canvas.height);
     ctx.closePath();
@@ -96,8 +98,23 @@ class Terrain {}
 const player = new Player(10, 1, 25, 50, "black", 50, 10000);
 player.move(0, -400);
 
+let goUp = false;
 let xRotation = 0;
+let attractPoint = [0,0]; 
+let sameInInterval = (a, b, interval) => Math.abs(a-b) < interval;
 function animate() {
+    attractPoint = [perlin.getVal(player.lst[1][0]/200)*500 + camera_offset.y,
+                    perlin.getVal(player.lst[2][0]/200)*500 + camera_offset.y];
+
+    if (player.lst[1][1]+camera_offset.y > attractPoint[0] || player.lst[2][1]+camera_offset.y > attractPoint[1]) {
+        if (Math.abs(player.force.y) <= 0.1 && sameInInterval(player.lst[1][1]+camera_offset.y, attractPoint[0], 1) && 
+                                                sameInInterval(player.lst[2][1]+camera_offset.y, attractPoint[1], 1)){
+            alert("You won");
+        }else{
+            console.log(player.force.y, player.lst[1][1]+camera_offset.y, attractPoint[0], player.lst[2][1]+camera_offset.y, attractPoint[1]);
+            alert("You lost");
+        }
+    }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#ADD8E6";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -108,30 +125,34 @@ function animate() {
     player.update();
     player.draw();
     drawTerrain(player);
-    if (player.y > canvas.height) {
-        player.move(0, -player.y*1.5);
-        player.force = {x: 0, y: 0};
-        player.fuel = 10000;
-    }
+
     ctx.fillStyle = "black";
     ctx.font = "20px Arial";
     ctx.fillText("Fuel: " + player.fuel, 10, 30);
     ctx.fillText("Y-velocity: " + -Math.floor(player.force.y*100)/100, 10, 60);
+    if (goUp && player.fuel > 0) rocket_up();
+    ctx.fillRect(player.lst[1][0]+camera_offset.x, attractPoint[0], 1, 40);
+    ctx.fillRect(player.lst[2][0]+camera_offset.x, attractPoint[1], 1, 40);
     requestAnimationFrame(animate);
 }
 animate();
 
+let rocket_up = () =>{
+    player.force.x += Math.sin(player.totalRotation)/180;
+    player.force.y -= Math.cos(player.totalRotation)/140;
+    player.fuel -= 1;
+    goUp = true;
+}
 document.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowUp" && player.fuel > 0) {
-        console.log(player.totalRotation, Math.cos(player.totalRotation), Math.sin(player.totalRotation));
-        player.force.x += Math.sin(player.totalRotation)/90;
-        player.force.y -= Math.cos(player.totalRotation)/40;
-        player.fuel -= 1;
-    }
+    if ((e.key === "ArrowUp" || goUp) && player.fuel > 0)
+        goUp = true;
     if (e.key === "ArrowRight") xRotation = 0.009;
     if (e.key === "ArrowLeft") xRotation = -0.009;
 });
 document.addEventListener("keyup", (e) => {
     if (e.key === "ArrowRight" || e.key === "ArrowLeft") 
         xRotation = 0;
+    else {
+        goUp = false;
+    }
 });
