@@ -2,6 +2,10 @@ import { Simple1DNoise } from './perlin.js';
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+const player_vel = localStorage.getItem("velocity");
+const player_weight = localStorage.getItem("weight");
+
+console.log(player_vel, player_weight);
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -107,13 +111,10 @@ function animate() {
                     perlin.getVal(player.lst[2][0]/200)*500 + camera_offset.y];
 
     if (player.lst[1][1]+camera_offset.y > attractPoint[0] || player.lst[2][1]+camera_offset.y > attractPoint[1]) {
-        if (Math.abs(player.force.y) <= 0.1 && sameInInterval(player.lst[1][1]+camera_offset.y, attractPoint[0], 1) && 
-                                                sameInInterval(player.lst[2][1]+camera_offset.y, attractPoint[1], 1)){
-            alert("You won");
-        }else{
-            console.log(player.force.y, player.lst[1][1]+camera_offset.y, attractPoint[0], player.lst[2][1]+camera_offset.y, attractPoint[1]);
-            alert("You lost");
-        }
+        if (Math.abs(player.force.y) <= 0.12 && sameInInterval(player.lst[1][1]+camera_offset.y, attractPoint[0], 1) && 
+                                                sameInInterval(player.lst[2][1]+camera_offset.y, attractPoint[1], 1))
+            window.location.href = "won.html";
+        else window.location.href = "game.html";
     }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#ADD8E6";
