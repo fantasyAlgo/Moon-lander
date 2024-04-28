@@ -18,6 +18,7 @@ class Player {
         this.rotation = 0;
         this.totalRotation = 0;
         this.force = {x: 0, y: 0};
+        this.start_time = 0;
         // Points of the graphics, they are useful for the rotate method
         this.lst = [
             [this.x, this.y],
@@ -57,7 +58,7 @@ class Player {
     }
     update() {
         this.move(this.force.x, this.force.y);
-        this.force.y += 0.000981*3 - this.force.y/this.weight/10;
+        this.force.y += 0.000981*2 + this.force.y/this.weight/20;
         this.force.x *= 0.999;
     }
     draw() {
@@ -77,7 +78,9 @@ function drawTerrain(player) {
     ctx.beginPath();
 
     ctx.moveTo(player.x > 0 ? -player.x : -camera_offset.x, canvas.height);
-    for (let i = -camera_offset.x; i < canvas.width + player.x ; i+=10) 
+    // i made this to always start at a number divisible by 40, in this way the starting point of each line don't change at each offset
+    let start_pos = -Math.floor(camera_offset.x/40)*40 - 40;
+    for (let i = start_pos; i < canvas.width + player.x ; i+=40) 
         ctx.lineTo(i+camera_offset.x, perlin.getVal(i/200)*500+camera_offset.y);
     ctx.lineTo(canvas.width + (player.x > 0 ?  player.x : camera_offset.x), canvas.height);
     ctx.closePath();
@@ -105,7 +108,11 @@ function animate() {
     player.update();
     player.draw();
     drawTerrain(player);
-
+    if (player.y > canvas.height) {
+        player.move(0, -player.y*1.5);
+        player.force = {x: 0, y: 0};
+        player.fuel = 10000;
+    }
     ctx.fillStyle = "black";
     ctx.font = "20px Arial";
     ctx.fillText("Fuel: " + player.fuel, 10, 30);
