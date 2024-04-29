@@ -13,6 +13,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh; /* Ensures content fills viewport */
+            color: #1c1c1b
         }
 
         .container {
@@ -79,9 +80,9 @@
         <p>Let's customize your moon-lander before we start.</p>
         <form>
             <label for="weight">What's your player's weight?</label>
-            <input type="number" id="weight" name="weight" required>
+            <input type="number" id="weight" name="weight" placeholder="Generally around 100" required>
             <label for="velocity">What's your player's starting velocity?</label>
-            <input type="number" id="velocity" name="velocity" required>
+            <input type="number" id="velocity" name="velocity" placeholder="Generally around 15" required>
             <br>
             <a onclick="saveInput()" href="game.html" class="button">Let's Go!</a>
         </form>

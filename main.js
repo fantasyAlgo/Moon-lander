@@ -54,8 +54,8 @@ class Player {
     }
     update() {
         this.move(this.force.x, this.force.y);
-        this.force.y += 0.000981*2.3 + clamp(this.force.y/this.weight/20, -0.000981, 0.000981);
-        this.force.x *= 0.999;
+        this.force.y += 0.000981*(2.3+(this.weight-50)/100) + clamp(this.force.y/this.weight/20, -0.000981, 0.000981);
+        this.force.x *= (0.999-this.weight/85000);
     }
     draw() {
         ctx.beginPath();
@@ -104,7 +104,6 @@ class RocketParticleSystem {
     }
     draw(){
         let length = this.active_particles.length;
-        let pos;
         let size;
         let particle;
         for (let i = 0; i < length; i++) {
@@ -180,7 +179,8 @@ function diedAnimation(){
 
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-const player_vel = localStorage.getItem("velocity");
+const player_vel = localStorage.getItem("velocity")/10;
+const player_gas = {y: 160/player_vel, x: 180/player_vel};
 const player_weight = localStorage.getItem("weight");
 const player_particles = 500;
 
@@ -198,7 +198,7 @@ let dead_time = 0;
 
 const particles = new RocketParticleSystem();
 const sky = make_sky(40);
-const player = new Player(10, 1, 25, 50, "#929990", 50, 40000);
+const player = new Player(10, 1, 25, 50, "#929990", player_weight, 40000);
 player.move(0, -400);
 function animate() {
     attractPoint = [perlin.getVal(player.lst[1][0]/200)*500 + camera_offset.y,
@@ -246,8 +246,8 @@ function animate() {
 animate();
 
 let rocket_up = () =>{
-    player.force.x += Math.sin(player.totalRotation)/180;
-    player.force.y -= Math.cos(player.totalRotation)/160;
+    player.force.x += Math.sin(player.totalRotation)/player_gas.x;
+    player.force.y -= Math.cos(player.totalRotation)/player_gas.y;
     player.fuel -= 1;
     goUp = true;
 }
