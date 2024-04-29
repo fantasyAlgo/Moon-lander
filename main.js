@@ -14,6 +14,10 @@ let perlin = new Simple1DNoise();
 let camera_offset = {x: 0, y: 0};
 
 let clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+let lerp = (n1, n2, t) => n1 + (n2 - n1)*t;
+let sameInInterval = (a, b, interval) => Math.abs(a-b) < interval;
+
+const player_particles = 500;
 class Player {
     constructor(x, y, width, height, color, weight, fuel) {
         this.x = x;
@@ -102,13 +106,16 @@ class RocketParticleSystem {
         this.active_particles = [];
     }
     emit(start_pos, vel){
+        const start_time = 1+(Math.random()*2-1)/10;
         this.active_particles.push({
-            time_rem: 1+(Math.random()*2-1)/10,
+            start_time: start_time,
+            time_rem: start_time,
             pos: start_pos,
             vel: {
                 x: vel.x + (Math.random()*2 - 1)/2,
                 y: vel.y + (Math.random()*2 - 1)/10, 
-            }
+            },
+            size: Math.random()*4 + 1
         });
     }
     update(){
@@ -125,13 +132,16 @@ class RocketParticleSystem {
             this.active_particles[i].time_rem -= 0.01;
         }
     }
-    draw(){
+    draw(color="#916846"){
         let length = this.active_particles.length;
         let pos;
-        ctx.fillStyle = "#916846";
+        ctx.fillStyle = color;
+        let size;
+        let particle;
         for (let i = 0; i < length; i++) {
-            pos = this.active_particles[i].pos;
-            ctx.fillRect(pos.x, pos.y, 2, 2);
+            particle = this.active_particles[i];
+            size = lerp(particle.size, 0, particle.start_time-particle.time_rem*particle.start_time)
+            ctx.fillRect(particle.pos.x, particle.pos.y, size, size);
         }
     }
 }
@@ -140,8 +150,9 @@ function make_sky(nStars){
     let lst = [];
     for (let i = 0; i < nStars; i++) {
         lst.push({
-            x: Math.random()*canvas.width,
-            y: Math.random()*canvas.height
+            x: Math.random()*canvas.width*2,
+            y: Math.random()*canvas.height*2,
+            size: Math.random()*5+3
         });
     }
     return {
@@ -152,8 +163,10 @@ function make_sky(nStars){
             for (let i = 0; i < nStars; i++){
                 each = lst[i].x+camera_offset.x/10;
                 if (each < 0)
-                    ctx.fillRect(canvas.width - Math.abs(each)%canvas.width, (lst[i].y+camera_offset.y/10)%canvas.height, 5, 5);
-                else ctx.fillRect(each%canvas.width, (lst[i].y+camera_offset.y/10)%canvas.height, 5, 5);
+                    ctx.fillRect(2*canvas.width - Math.abs(each)%(2*canvas.width), 
+                                (lst[i].y+camera_offset.y/10)%(2*canvas.height), lst[i].size, lst[i].size);
+                else ctx.fillRect(each%(2*canvas.width), 
+                                 (lst[i].y+camera_offset.y/10)%(2*canvas.height), lst[i].size, lst[i].size);
             }
         }
     };
@@ -164,11 +177,12 @@ player.move(0, -400);
 
 let goUp = false;
 let xRotation = 0;
-let attractPoint = [0,0]; 
-let sameInInterval = (a, b, interval) => Math.abs(a-b) < interval;
+let attractPoint = [0,0];
+let dead = false;
 
 let particles = new RocketParticleSystem();
-let sky = make_sky(25);
+let sky = make_sky(40);
+let dead_time = 0
 function animate() {
     attractPoint = [perlin.getVal(player.lst[1][0]/200)*500 + camera_offset.y,
                     perlin.getVal(player.lst[2][0]/200)*500 + camera_offset.y];
@@ -177,9 +191,32 @@ function animate() {
         if (Math.abs(player.force.y) <= 0.12 && sameInInterval(player.lst[1][1]+camera_offset.y, attractPoint[0], 1) && 
                                                 sameInInterval(player.lst[2][1]+camera_offset.y, attractPoint[1], 1))
             window.location.href = "won.html";
-        else window.location.href = "game.html";
+        else if (!dead){
+            for (let _ = 0; _ < player_particles; _++) {
+                particles.emit({x: player.lst[3][0]+camera_offset.x, y: player.lst[3][1]+camera_offset.y}, 
+                    {x: Math.random()*2-1, y: Math.random()*2-1});
+            }
+            dead = true;
+            //window.location.href = "game.html";
+        }
     }
-
+    if (dead){
+        if (dead_time > 1000)
+            window.location.href = "game.html"
+        dead_time += 1
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#1c1c1b";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        particles.update();
+        particles.draw("#929990");
+        sky.draw();
+        camera_offset.y -= 0.1*(dead_time/100);
+        drawTerrain(player);
+        requestAnimationFrame(animate);
+        return;
+    }
+    console.log("hello");
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#1c1c1b";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -188,8 +225,8 @@ function animate() {
     camera_offset = {x: -player.x + canvas.width/2, y: -player.y + canvas.height/2};
 
     player.update();
-    player.draw();
     sky.draw();
+    player.draw();
     drawTerrain(player);
 
     ctx.fillStyle = "white";
