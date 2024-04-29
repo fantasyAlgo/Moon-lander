@@ -1,23 +1,9 @@
 import { Simple1DNoise } from './perlin.js';
 
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-const player_vel = localStorage.getItem("velocity");
-const player_weight = localStorage.getItem("weight");
-
-console.log(player_vel, player_weight);
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let perlin = new Simple1DNoise();
-let camera_offset = {x: 0, y: 0};
-
 let clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 let lerp = (n1, n2, t) => n1 + (n2 - n1)*t;
 let sameInInterval = (a, b, interval) => Math.abs(a-b) < interval;
 
-const player_particles = 500;
 class Player {
     constructor(x, y, width, height, color, weight, fuel) {
         this.x = x;
@@ -84,28 +70,11 @@ class Player {
         ctx.fill('evenodd');
     }
 }
-function drawTerrain(player) {
-    ctx.beginPath();
-
-    ctx.moveTo(player.x > 0 ? -player.x : -camera_offset.x, canvas.height);
-    // i made this to always start at a number divisible by 40, in this way the starting point of each line don't change at each offset
-    let start_pos = -Math.floor(camera_offset.x/40)*40 - 40;
-    for (let i = start_pos; i < canvas.width + player.x; i+=40) 
-        ctx.lineTo(i+camera_offset.x, perlin.getVal(i/200)*500+camera_offset.y);
-    ctx.lineTo(canvas.width + (player.x > 0 ?  player.x : camera_offset.x), canvas.height);
-    ctx.closePath();
-    ctx.fillStyle = "#121211";
-    ctx.fill();
-
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-}
 class RocketParticleSystem {
     constructor() {
         this.active_particles = [];
     }
-    emit(start_pos, vel){
+    emit(start_pos, vel, color="#916846"){
         const start_time = 1+(Math.random()*2-1)/10;
         this.active_particles.push({
             start_time: start_time,
@@ -115,7 +84,8 @@ class RocketParticleSystem {
                 x: vel.x + (Math.random()*2 - 1)/2,
                 y: vel.y + (Math.random()*2 - 1)/10, 
             },
-            size: Math.random()*4 + 1
+            size: Math.random()*4 + 1,
+            color: color
         });
     }
     update(){
@@ -132,14 +102,14 @@ class RocketParticleSystem {
             this.active_particles[i].time_rem -= 0.01;
         }
     }
-    draw(color="#916846"){
+    draw(){
         let length = this.active_particles.length;
         let pos;
-        ctx.fillStyle = color;
         let size;
         let particle;
         for (let i = 0; i < length; i++) {
             particle = this.active_particles[i];
+            ctx.fillStyle = particle.color;
             size = lerp(particle.size, 0, particle.start_time-particle.time_rem*particle.start_time)
             ctx.fillRect(particle.pos.x, particle.pos.y, size, size);
         }
@@ -164,67 +134,96 @@ function make_sky(nStars){
                 each = lst[i].x+camera_offset.x/10;
                 if (each < 0)
                     ctx.fillRect(2*canvas.width - Math.abs(each)%(2*canvas.width), 
-                                (lst[i].y+camera_offset.y/10)%(2*canvas.height), lst[i].size, lst[i].size);
+                                (lst[i].y+camera_offset.y/20)%(2*canvas.height), lst[i].size, lst[i].size);
                 else ctx.fillRect(each%(2*canvas.width), 
-                                 (lst[i].y+camera_offset.y/10)%(2*canvas.height), lst[i].size, lst[i].size);
+                                 (lst[i].y+camera_offset.y/20)%(2*canvas.height), lst[i].size, lst[i].size);
             }
         }
     };
 }
 
-const player = new Player(10, 1, 25, 50, "#929990", 50, 40000);
-player.move(0, -400);
+function drawTerrain(player) {
+    ctx.beginPath();
+
+    ctx.moveTo(player.x > 0 ? -player.x : -camera_offset.x, canvas.height);
+    // i made this to always start at a number divisible by 40, in this way the starting point of each line don't change at each offset
+    let start_pos = -Math.floor(camera_offset.x/40)*40 - 40;
+    for (let i = start_pos; i < canvas.width + player.x; i+=40) 
+        ctx.lineTo(i+camera_offset.x, perlin.getVal(i/200)*500+camera_offset.y);
+    ctx.lineTo(canvas.width + (player.x > 0 ?  player.x : camera_offset.x), canvas.height);
+    ctx.closePath();
+    ctx.fillStyle = "#121211";
+    ctx.fill();
+
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+}
+function initDiedAnimation(){
+    for (let i = 0; i < player_particles; i++) {
+        particles.emit({x: player.lst[3][0]+camera_offset.x, y: player.lst[3][1]+camera_offset.y}, 
+            {x: Math.random()*2-1, y: Math.random()*2-1}, i%2==0 ? "#916846" :"#929990");
+    }
+    dead = true;
+    //window.location.href = "game.html";
+}
+function diedAnimation(){
+    if (dead_time > 1000)
+        window.location.href = "game.html"
+    dead_time += 1
+    particles.update();
+    particles.draw();
+    sky.draw();
+    camera_offset.y -= 0.1*(dead_time/100);
+    drawTerrain(player);
+}
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const player_vel = localStorage.getItem("velocity");
+const player_weight = localStorage.getItem("weight");
+const player_particles = 500;
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let perlin = new Simple1DNoise();
+let camera_offset = {x: 0, y: 0};
 
 let goUp = false;
 let xRotation = 0;
 let attractPoint = [0,0];
 let dead = false;
+let dead_time = 0;
 
-let particles = new RocketParticleSystem();
-let sky = make_sky(40);
-let dead_time = 0
+const particles = new RocketParticleSystem();
+const sky = make_sky(40);
+const player = new Player(10, 1, 25, 50, "#929990", 50, 40000);
+player.move(0, -400);
 function animate() {
     attractPoint = [perlin.getVal(player.lst[1][0]/200)*500 + camera_offset.y,
                     perlin.getVal(player.lst[2][0]/200)*500 + camera_offset.y];
-
+    
     if (player.lst[1][1]+camera_offset.y > attractPoint[0] || player.lst[2][1]+camera_offset.y > attractPoint[1]) {
         if (Math.abs(player.force.y) <= 0.12 && sameInInterval(player.lst[1][1]+camera_offset.y, attractPoint[0], 1) && 
                                                 sameInInterval(player.lst[2][1]+camera_offset.y, attractPoint[1], 1))
             window.location.href = "won.html";
-        else if (!dead){
-            for (let _ = 0; _ < player_particles; _++) {
-                particles.emit({x: player.lst[3][0]+camera_offset.x, y: player.lst[3][1]+camera_offset.y}, 
-                    {x: Math.random()*2-1, y: Math.random()*2-1});
-            }
-            dead = true;
-            //window.location.href = "game.html";
-        }
+        else if (!dead) initDiedAnimation();
     }
-    if (dead){
-        if (dead_time > 1000)
-            window.location.href = "game.html"
-        dead_time += 1
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#1c1c1b";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        particles.update();
-        particles.draw("#929990");
-        sky.draw();
-        camera_offset.y -= 0.1*(dead_time/100);
-        drawTerrain(player);
-        requestAnimationFrame(animate);
-        return;
-    }
-    console.log("hello");
-    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#1c1c1b";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    player.rotate(xRotation);
+    if (dead){
+        diedAnimation();
+        requestAnimationFrame(animate);
+        return;
+    }
     camera_offset = {x: -player.x + canvas.width/2, y: -player.y + canvas.height/2};
 
+    player.rotate(xRotation);
     player.update();
+
     sky.draw();
     player.draw();
     drawTerrain(player);
@@ -239,8 +238,6 @@ function animate() {
         particles.emit({x: player.lst[3][0]+camera_offset.x, y: player.lst[3][1]+camera_offset.y}, 
             {x: -player.force.x, y: -player.force.y});
     }
-    ctx.fillRect(player.lst[1][0]+camera_offset.x, attractPoint[0], 1, 40);
-    ctx.fillRect(player.lst[2][0]+camera_offset.x, attractPoint[1], 1, 40);
     particles.update();
     particles.draw();
 

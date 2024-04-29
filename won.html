@@ -3,9 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Moon Victory</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0c1445;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            text-align: center;
+            padding: 50px 0;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        .moon {
+            width: 200px;
+            height: 140px;
+            background: url('https://i.imgur.com/yDtDchv.png') no-repeat;
+            background-size: contain;
+            margin: 0 auto 50px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #5f4f9a;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            transition: background-color 0.3s ease;
+        }
+        .button:hover {
+            background-color: #3b2b5e;
+        }
+        #backgroundVideo {
+            position: fixed; /* Positions the video behind the content */
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover; /* Scales the video to cover the viewport */
+            z-index: -1; /* Places the video behind other elements */
+        }
+    </style>
 </head>
 <body>
-    <h1>You have won, so be happy, and don't worry!?!?!?!?!</h1>
+    <video autoplay muted loop id="backgroundVideo">
+        <source src="moonVideo.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    <div class="container">
+        <div class="moon"></div>
+        <h1>Celebrate Victory Under the Moonlight</h1>
+        <p>You've achieved greatness! Let the moon be witness to your triumph.</p>
+        <a href="index.html" class="button">Go back playing the game!</a>
+    </div>
 </body>
 </html>
