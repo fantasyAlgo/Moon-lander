@@ -70,11 +70,12 @@ class Player {
         ctx.fill('evenodd');
     }
 }
+
 class RocketParticleSystem {
     constructor() {
         this.active_particles = [];
     }
-    emit(start_pos, vel, color="#916846"){
+    emit(start_pos, vel, color="#916846", end_vel=null){
         const start_time = 1+(Math.random()*2-1)/10;
         this.active_particles.push({
             start_time: start_time,
@@ -85,20 +86,31 @@ class RocketParticleSystem {
                 y: vel.y + (Math.random()*2 - 1)/10, 
             },
             size: Math.random()*4 + 1,
-            color: color
+            color: color,
+            end_vel: end_vel != null ? {
+                x: end_vel.x + (Math.random()*2 - 1)/2,
+                y: end_vel.y + (Math.random()*2 - 1)/10, 
+            } : null
         });
     }
     update(){
         let length = this.active_particles.length;
+        let curr_vel;
+        let particle;
         for (let i = 0; i < length; i++) {
+            particle = this.active_particles[i];
             if (this.active_particles[i].time_rem < 0){
                 this.active_particles.shift();
                 i -= 1;
                 length -= 1;
                 continue;
             }
-            this.active_particles[i].pos.x += this.active_particles[i].vel.x;
-            this.active_particles[i].pos.y += this.active_particles[i].vel.y;
+            curr_vel = particle.end_vel != null ? {
+                x: lerp(particle.vel.x, particle.end_vel.x, particle.start_time-particle.time_rem*particle.start_time),
+                y: lerp(particle.vel.y, particle.end_vel.y, particle.start_time-particle.time_rem*particle.start_time)
+            } : particle.vel;
+            this.active_particles[i].pos.x += curr_vel.x;
+            this.active_particles[i].pos.y += curr_vel.y;
             this.active_particles[i].time_rem -= 0.01;
         }
     }
@@ -236,7 +248,7 @@ function animate() {
     if (goUp && player.fuel > 0){
         rocket_up();
         particles.emit({x: player.lst[3][0]+camera_offset.x, y: player.lst[3][1]+camera_offset.y}, 
-            {x: -player.force.x, y: -player.force.y});
+            {x: -Math.sin(player.totalRotation), y: Math.cos(player.totalRotation)}, "#916846", {x: -player.force.x, y: -player.force.y});
     }
     particles.update();
     particles.draw();

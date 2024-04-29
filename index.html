@@ -89,11 +89,10 @@
     </div>
     <script>
         function saveInput(){
-            console.log("I am here!")
             var weight = document.getElementById("weight").value;
             var velocity = document.getElementById("velocity").value;
-            localStorage.setItem("weight", weight);
-            localStorage.setItem("velocity", velocity);
+            localStorage.setItem("weight", weight == "" ? 100 : weight)
+            localStorage.setItem("velocity", velocity == "" ? 15 : velocity);
         }
     </script>
 </body>
