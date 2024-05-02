@@ -195,7 +195,7 @@ const player_vel = localStorage.getItem("velocity")/10;
 const player_gas = {y: 160/player_vel, x: 180/player_vel};
 const player_weight = localStorage.getItem("weight");
 const player_particles = 500;
-
+  
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
@@ -214,9 +214,10 @@ const player = new Player(10, 1, 25, 50, "#929990", player_weight, 40000);
 player.move(0, -400);
 function animate() {
     attractPoint = [perlin.getVal(player.lst[1][0]/200)*500 + camera_offset.y,
-                    perlin.getVal(player.lst[2][0]/200)*500 + camera_offset.y];
+                    perlin.getVal(player.lst[2][0]/200)*500 + camera_offset.y,
+                    perlin.getVal(player.lst[0][0]/200)*500 + camera_offset.y];
     
-    if (player.lst[1][1]+camera_offset.y > attractPoint[0] || player.lst[2][1]+camera_offset.y > attractPoint[1]) {
+    if (player.lst[1][1]+camera_offset.y > attractPoint[0] || player.lst[2][1]+camera_offset.y > attractPoint[1] || player.lst[0][1]+camera_offset.y > attractPoint[2]) {
         if (Math.abs(player.force.y) <= 0.12 && sameInInterval(player.lst[1][1]+camera_offset.y, attractPoint[0], 1) && 
                                                 sameInInterval(player.lst[2][1]+camera_offset.y, attractPoint[1], 1))
             window.location.href = "won.html";
@@ -238,7 +239,6 @@ function animate() {
 
     sky.draw();
     player.draw();
-    drawTerrain(player);
 
     ctx.fillStyle = "white";
     ctx.font = "20px Arial";
@@ -252,6 +252,8 @@ function animate() {
     }
     particles.update();
     particles.draw();
+
+    drawTerrain(player);
 
     requestAnimationFrame(animate);
 }
