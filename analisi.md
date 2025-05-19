@@ -1,1 +1,0 @@
-# Analisys of that shit

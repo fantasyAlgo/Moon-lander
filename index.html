@@ -1,99 +1,118 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Get Ready to Play!</title>
-    <style>
-        body {
-            background-color: #7a2a2a; /* Light gray background */
-            font-family: Arial, sans-serif;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh; /* Ensures content fills viewport */
-            color: #1c1c1b
-        }
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Get Ready to Play!</title>
+        <style>
+            body {
+                background-color: #7a2a2a; /* Light gray background */
+                font-family: Arial, sans-serif;
+                margin: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh; /* Ensures content fills viewport */
+                color: #1c1c1b;
+            }
 
-        .container {
-            background-color: #f8f5f5; /* White container */
-            border-radius: 10px; /* Rounded corners */
-            padding: 30px;
-            text-align: center;
-            box-shadow: 0 0 50px rgba(255, 255, 255, 0.2); /* Subtle shadow */
-        }
+            .container {
+                background-color: #f8f5f5; /* White container */
+                border-radius: 10px; /* Rounded corners */
+                padding: 30px;
+                text-align: center;
+                box-shadow: 0 0 50px rgba(255, 255, 255, 0.2); /* Subtle shadow */
+            }
 
-        h1 {
-            font-size: 2em;
-            margin-bottom: 15px;
-        }
+            h1 {
+                font-size: 2em;
+                margin-bottom: 15px;
+            }
 
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
+            label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
 
-        input[type="number"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin-bottom: 15px;
-        }
+            input[type="number"] {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                margin-bottom: 15px;
+            }
 
-        .button {
-            background-color: #634e91; /* Green button */
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+            .button {
+                background-color: #634e91; /* Green button */
+                border: none;
+                color: white;
+                padding: 10px 20px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                border-radius: 5px;
+                cursor: pointer;
+            }
 
-        .button:hover {
-            background-color: #3a295e; /* Darker green on hover */
-        }
-        #backgroundVideo {
-            position: fixed; /* Positions the video behind the content */
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            object-fit: cover; /* Scales the video to cover the viewport */
-            z-index: -1; /* Places the video behind other elements */
-        }
-    </style>
-</head>
-<body>
-    <video autoplay muted loop id="backgroundVideo">
-        <source src="moonVideo.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-      </video>
-    <div class="container">
-        <h1>Get Ready for the Adventure!</h1>
-        <p>Let's customize your moon-lander before we start.</p>
-        <form>
-            <label for="weight">What's your player's weight?</label>
-            <input type="number" id="weight" name="weight" placeholder="Generally around 100" required>
-            <label for="velocity">What's your player's starting velocity?</label>
-            <input type="number" id="velocity" name="velocity" placeholder="Generally around 15" required>
-            <br>
-            <a onclick="saveInput()" href="game.html" class="button">Let's Go!</a>
-        </form>
-    </div>
-    <script>
-        function saveInput(){
-            var weight = document.getElementById("weight").value;
-            var velocity = document.getElementById("velocity").value;
-            localStorage.setItem("weight", weight == "" ? 100 : weight)
-            localStorage.setItem("velocity", velocity == "" ? 15 : velocity);
-        }
-    </script>
-</body>
+            .button:hover {
+                background-color: #3a295e; /* Darker green on hover */
+            }
+            #backgroundVideo {
+                position: fixed; /* Positions the video behind the content */
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                object-fit: cover; /* Scales the video to cover the viewport */
+                z-index: -1; /* Places the video behind other elements */
+            }
+        </style>
+    </head>
+    <body>
+        <video autoplay muted loop id="backgroundVideo">
+            <source src="moonVideo.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+        </video>
+        <div class="container">
+            <h1>Get Ready for the Adventure!</h1>
+            <p>Let's customize your moon-lander before we start.</p>
+            <form>
+                <label for="weight">What's your player's weight?</label>
+                <input
+                    type="number"
+                    id="weight"
+                    name="weight"
+                    placeholder="Generally around 200"
+                    required
+                />
+                <label for="velocity"
+                    >What's your player's starting velocity?</label
+                >
+                <input
+                    type="number"
+                    id="velocity"
+                    name="velocity"
+                    placeholder="Generally around 30"
+                    required
+                />
+                <br />
+                <a onclick="saveInput()" href="game.html" class="button"
+                    >Let's Go!</a
+                >
+            </form>
+        </div>
+        <script>
+            function saveInput() {
+                var weight = document.getElementById("weight").value;
+                var velocity = document.getElementById("velocity").value;
+                localStorage.setItem("weight", weight == "" ? 200 : weight);
+                localStorage.setItem(
+                    "velocity",
+                    velocity == "" ? 30 : velocity,
+                );
+            }
+        </script>
+    </body>
 </html>
