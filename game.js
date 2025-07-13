@@ -33,8 +33,6 @@ export class Game {
   }
   handleKeyDown(e){
     if ((e.key == "w" || this.goUp) && this.player.fuel > 0) this.goUp = true;
-    if (e.key === "ArrowRight") this.xRotation = 0.009;
-    if (e.key === "ArrowLeft") this.xRotation = -0.009;
     if (e.key == "Shift" && this.boost_time > 0) this.is_boosting = true;
   }
   handleKeyUp(e){
@@ -108,12 +106,12 @@ export class Game {
         this.pageNeeded = 2 // Dying animation
       }
     }
-    this.boost_time += this.is_boosting ? -1 : 0.1;
-    if (this.boost_time < -10) boost_time = -10;
+    this.boost_time += dt * (this.is_boosting ? -1 : 0.1);
+    if (this.boost_time < -10) this.boost_time = -10;
     if (this.boost_time > this.boost_duration) this.boost_time = this.boost_duration;
     //console.log(is_boosting, boost_time);
     if (this.goUp && this.player.fuel > 0) {
-      this.rocket_up(this.is_boosting && this.boost_time > 0 ? 4.0 : 1.0);
+      this.rocket_up(dt * (this.is_boosting && this.boost_time > 0 ? 4.0 : 1.0));
       this.particles.emit(
         {
           x: this.player.lst[3][0] + this.camera_offset.x,
@@ -134,7 +132,7 @@ export class Game {
       }
 
       //console.log(asteroid.points, this.player.getShapePosition(this.camera_offset), intersection);
-      if ( asteroid.update(this.perlin) ){
+      if ( asteroid.update(this.perlin, dt) ){
         this.asteroids.splice(this.asteroids.indexOf(asteroid), 1);
         let center = { x: 0, y: 0 };
         asteroid_shape.forEach(element => {
@@ -160,7 +158,7 @@ export class Game {
     });
 
     this.generate()
-    this.player.update();
+    this.player.update(dt);
     this.particles.update();
   }
 

@@ -14,8 +14,15 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 let game = new Game(canvas, ctx, player_weight, boost_duration, player_vel);
+
+let lastTime = performance.now();
+let dt;
 function animate() {
-  game.update();
+  const now = performance.now();
+  dt = (now-lastTime)/5;
+  lastTime = now;
+
+  game.update(dt);
   game.draw(ctx);
   game.drawText(ctx);
   if (game.dead_time > 1000) window.location.href = "game.html";

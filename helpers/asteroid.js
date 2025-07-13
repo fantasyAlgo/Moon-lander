@@ -89,11 +89,11 @@ export function make_asteroid(player_pos) {
     points: points,
     position: position,
     direction: direction,
-    update: (perlin) => {
+    update: (perlin, dt=1) => {
       let hasCollapsed = false;
       points.forEach((el) => {
-        el.x += direction.x;
-        el.y += direction.y;
+        el.x += direction.x*dt;
+        el.y += direction.y*dt;
         if (perlin.getVal((el.x + position.x) / 200) * 500 <= el.y + position.y)
           hasCollapsed = true;
       });

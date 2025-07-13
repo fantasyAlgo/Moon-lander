@@ -61,11 +61,10 @@ export class Player {
     let angle = Math.atan2(pointing_vec.x, pointing_vec.y);
     this.static_rotate(angle);
   }
-  update() {
+  update(dt=1) {
     this.move(this.force.x, this.force.y);
-    this.force.y +=
-      0.000981 * (2.3 + (this.weight - 50) / 100) +
-      clamp(this.force.y / this.weight / 20, -0.000981, 0.000981);
+    this.force.y += ( 0.000981 * (2.3 + (this.weight - 50) / 100) +
+                    clamp(this.force.y / this.weight / 20, -0.000981, 0.000981)) * dt;
     this.force.x *= 0.9999 - this.weight / 85000;
   }
   getShapePosition(camera_offset){
