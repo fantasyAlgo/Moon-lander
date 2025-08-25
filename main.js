@@ -13,7 +13,8 @@ const boost_duration = 200;
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let game = new Game(canvas, ctx, player_weight, boost_duration, player_vel);
+window.game = new Game(canvas, ctx, player_weight, boost_duration, player_vel);
+
 
 let lastTime = performance.now();
 let dt;
