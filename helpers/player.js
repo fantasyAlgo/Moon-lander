@@ -1,6 +1,9 @@
+import { MAX_IMPACT_VEL, MIN_ALIGNMENT } from "../settings.js";
+
 let clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 let sameInInterval = (a, b, interval) => Math.abs(a - b) < interval;
 
+// Some consts
 
 export class Player {
   constructor(ctx, x, y, width, height, color, weight, fuel) {
@@ -61,6 +64,7 @@ export class Player {
     let angle = Math.atan2(pointing_vec.x, pointing_vec.y);
     this.static_rotate(angle);
   }
+
   update(dt=1) {
     this.move(this.force.x, this.force.y);
     this.force.y += ( 0.000981 * (2.3 + (this.weight - 50) / 100) +
@@ -105,9 +109,9 @@ export class Player {
     this.ctx.fill("evenodd");
   }
   isInRightPosition(attractPoint, camera_offset){
-    return  Math.abs(this.force.y) <= 0.15 && 
-            sameInInterval(this.lst[1][1] + camera_offset.y, attractPoint[0], 3) && 
-            sameInInterval(this.lst[2][1] + camera_offset.y, attractPoint[1], 3);
+    return  Math.abs(this.force.y) <= MAX_IMPACT_VEL && 
+            sameInInterval(this.lst[1][1] + camera_offset.y, attractPoint[0], MIN_ALIGNMENT) && 
+            sameInInterval(this.lst[2][1] + camera_offset.y, attractPoint[1], MIN_ALIGNMENT);
   }
   checkFloorCollision(attractPoint, camera_offset){
     return this.lst[1][1] + camera_offset.y > attractPoint[0] ||

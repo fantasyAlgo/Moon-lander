@@ -4,6 +4,7 @@ import { RocketParticleSystem } from "./helpers/rocket.js";
 import { make_sky } from "./helpers/sky.js";
 import { make_asteroid } from "./helpers/asteroid.js";
 import { collisionSAT } from "./helpers/collisions.js";
+import { INITIAL_FUEL, SPAWN_ASTEROID_PROB } from "./settings.js";
 
 export class Game {
   perlin = new Simple1DNoise();
@@ -25,7 +26,7 @@ export class Game {
     this.canvas = canvas
     this.particles = new RocketParticleSystem(ctx);
     this.sky = make_sky(ctx, 40);
-    this.player = new Player(ctx, 10, 1, 25, 50, "#929990", player_weight, 10000);
+    this.player = new Player(ctx, 10, 1, 25, 50, "#929990", player_weight, INITIAL_FUEL);
     this.boost_time = boost_duration;
     this.player_gas = { y: 160 / player_vel, x: 180 / player_vel };
 
@@ -56,7 +57,7 @@ export class Game {
   }
   generate(){
     //if (this.asteroids.length != 0) return;
-    if (Math.random() > 0.99) 
+    if (Math.random() > (1.0 - SPAWN_ASTEROID_PROB)) 
       this.asteroids.push(make_asteroid({ x: this.player.x, y: this.player.y }));
   }
   generateAttractPoints(){
@@ -122,6 +123,24 @@ export class Game {
         { x: -this.player.force.x, y: -this.player.force.y },
         this.is_boosting && this.boost_time > 0 ? 2.3 : 1.0,
       );
+      let attractPoint = this.generateAttractPoints();
+      if (this.player.lst[2][1] + this.camera_offset.y - attractPoint[1] < 3.0 && Math.abs(this.player.totalRotation) < 0.6){
+        console.log(this.player.totalRotation);
+        for (let i = 0; i < 3; i++) {
+          let t = Math.random()
+          this.particles.emit(
+            {
+              x: this.player.lst[0][0]*t + this.player.lst[3][0]*(1-t)  + this.camera_offset.x,
+              y: attractPoint[0]*t + attractPoint[2]*(1-t) + 0.1
+            },
+            { x: -Math.sin(this.player.totalRotation), y: Math.cos(this.player.totalRotation) },
+            "#fafaff",
+            { x: 2.0*(this.player.force.x + (2.0*Math.random()-1)), y: -0.5 },
+            1.0,
+          )
+        }
+      }
+
     }
     this.asteroids.forEach((asteroid) => {
       const asteroid_shape = asteroid.getShape(this.camera_offset);

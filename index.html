@@ -68,6 +68,68 @@
                 object-fit: cover; /* Scales the video to cover the viewport */
                 z-index: -1; /* Places the video behind other elements */
             }
+          select {
+              width: 100%;
+              padding: 10px 15px;
+              border: 1px solid #ccc;
+              border-radius: 5px;
+              margin-bottom: 15px;
+              background-color: white;
+              font-size: 16px;
+              font-family: Arial, sans-serif;
+              color: #1c1c1b;
+              cursor: pointer;
+              appearance: none; /* Removes default browser styling */
+              background-image: url("data:image/svg+xml;charset=UTF-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23634e91' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6,9 12,15 18,9'></polyline></svg>");
+              background-repeat: no-repeat;
+              background-position: right 10px center;
+              background-size: 16px;
+              padding-right: 40px; /* Make room for the custom arrow */
+          }
+
+          select:hover {
+              border-color: #634e91;
+              box-shadow: 0 0 5px rgba(99, 78, 145, 0.2);
+          }
+
+          select:focus {
+              outline: none;
+              border-color: #634e91;
+              box-shadow: 0 0 8px rgba(99, 78, 145, 0.3);
+          }
+
+          /* Style for option elements */
+          select option {
+              color: #1c1c1b;
+              background-color: white;
+              padding: 8px;
+          }
+
+          /* Alternative styling if you want a more modern look */
+          .select-wrapper {
+              position: relative;
+              display: inline-block;
+              width: 100%;
+              margin-bottom: 15px;
+          }
+
+          .select-wrapper::after {
+              content: '';
+              position: absolute;
+              top: 50%;
+              right: 15px;
+              transform: translateY(-50%);
+              width: 0;
+              height: 0;
+              border-left: 6px solid transparent;
+              border-right: 6px solid transparent;
+              border-top: 8px solid #634e91;
+              pointer-events: none;
+          }
+
+          .select-wrapper select {
+              margin-bottom: 0;
+          }
         </style>
     </head>
     <body>
@@ -97,6 +159,13 @@
                     placeholder="Generally around 30"
                     required
                 />
+                <label for="difficulty">What's the difficuly?</label>
+                <select id = "difficulty">
+                  <option value="easy">Easy</option>
+                  <option value="medium">Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+
                 <br />
                 <a onclick="saveInput()" href="game.html" class="button"
                     >Let's Go!</a
@@ -107,7 +176,9 @@
             function saveInput() {
                 var weight = document.getElementById("weight").value;
                 var velocity = document.getElementById("velocity").value;
+                var difficuly = document.getElementById("difficulty").value;
                 localStorage.setItem("weight", weight == "" ? 200 : weight);
+                localStorage.setItem("difficulty", difficulty.value);
                 localStorage.setItem(
                     "velocity",
                     velocity == "" ? 30 : velocity,
