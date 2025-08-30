@@ -10,4 +10,6 @@ export const SPAWN_ASTEROID_PROB = levels[0];
 export const MAX_IMPACT_VEL = levels[1];
 export const MIN_ALIGNMENT = levels[2];
 export const INITIAL_FUEL = levels[3];
+export const MIN_HEIGHT_DUST = 100;
+
 

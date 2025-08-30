@@ -4,7 +4,7 @@ import { RocketParticleSystem } from "./helpers/rocket.js";
 import { make_sky } from "./helpers/sky.js";
 import { make_asteroid } from "./helpers/asteroid.js";
 import { collisionSAT } from "./helpers/collisions.js";
-import { INITIAL_FUEL, SPAWN_ASTEROID_PROB } from "./settings.js";
+import { INITIAL_FUEL, MIN_HEIGHT_DUST, SPAWN_ASTEROID_PROB } from "./settings.js";
 
 export class Game {
   perlin = new Simple1DNoise();
@@ -124,8 +124,9 @@ export class Game {
         this.is_boosting && this.boost_time > 0 ? 2.3 : 1.0,
       );
       let attractPoint = this.generateAttractPoints();
-      if (this.player.lst[2][1] + this.camera_offset.y - attractPoint[1] < 3.0 && Math.abs(this.player.totalRotation) < 0.6){
-        console.log(this.player.totalRotation);
+      if ((attractPoint[1]- (this.player.lst[1][1] + this.camera_offset.y) < MIN_HEIGHT_DUST) && Math.abs(this.player.totalRotation) < 0.6){
+        console.log(this.player.lst[1][1] + this.camera_offset.y - attractPoint[1]);
+        let howNear = (attractPoint[1]- (this.player.lst[1][1] + this.camera_offset.y))/20;
         for (let i = 0; i < 3; i++) {
           let t = Math.random()
           this.particles.emit(
@@ -135,7 +136,7 @@ export class Game {
             },
             { x: -Math.sin(this.player.totalRotation), y: Math.cos(this.player.totalRotation) },
             "#fafaff",
-            { x: 2.0*(this.player.force.x + (2.0*Math.random()-1)), y: -0.5 },
+            { x: 2.0*(this.player.force.x + (2.0*Math.random()-1))/howNear, y: -0.5 },
             1.0,
           )
         }
