@@ -31,9 +31,9 @@ export class RocketParticleSystem {
   update() {
     let length = this.active_particles.length;
     let curr_vel;
-    let particle;
+    //let particle;
     for (let i = 0; i < length; i++) {
-      particle = this.active_particles[i];
+      const particle = this.active_particles[i];
       if (this.active_particles[i].time_rem < 0) {
         this.active_particles.shift();
         i -= 1;
@@ -54,7 +54,7 @@ export class RocketParticleSystem {
                 particle.start_time - particle.time_rem * particle.start_time,
               ),
             }
-          : particle.vel;
+          : {x: particle.vel.x, y: particle.vel.y} ;
       this.active_particles[i].pos.x += curr_vel.x;
       this.active_particles[i].pos.y += curr_vel.y;
       this.active_particles[i].time_rem -= 0.01;
@@ -63,9 +63,9 @@ export class RocketParticleSystem {
   draw() {
     let length = this.active_particles.length;
     let size;
-    let particle;
+    //let particle;
     for (let i = 0; i < length; i++) {
-      particle = this.active_particles[i];
+      const particle = this.active_particles[i];
       this.ctx.fillStyle = particle.color;
       size = lerp(
         particle.size,

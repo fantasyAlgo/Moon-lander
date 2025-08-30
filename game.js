@@ -4,7 +4,7 @@ import { RocketParticleSystem } from "./helpers/rocket.js";
 import { make_sky } from "./helpers/sky.js";
 import { make_asteroid } from "./helpers/asteroid.js";
 import { collisionSAT } from "./helpers/collisions.js";
-import { INITIAL_FUEL, MIN_HEIGHT_DUST, N_DIFFERENT_TREES, SPAWN_ASTEROID_PROB } from "./settings.js";
+import { INITIAL_FUEL, MIN_HEIGHT_DUST, N_DIFFERENT_TREES, PROB_TREE, SPAWN_ASTEROID_PROB } from "./settings.js";
 import { make_tree } from "./helpers/trees.js";
 
 export class Game {
@@ -160,17 +160,16 @@ export class Game {
         this.asteroids.splice(this.asteroids.indexOf(asteroid), 1);
         this.initDiedAnimation()
       }
+      console.log(asteroid_shape)
+      let center = asteroid.getCenter(asteroid_shape);
+      const ast_speed = 0.5;
 
+      this.particles.emit({x: center.x + 10.0*(Math.random()-0.5), y: center.y + 10.0*(Math.random()-0.5)} ,
+        { x: -asteroid.direction.x*ast_speed, y: -asteroid.direction.y*ast_speed }, "#916846", 
+        { x: -asteroid.direction.x*ast_speed, y: -asteroid.direction.y*ast_speed }, 2.0);
       //console.log(asteroid.points, this.player.getShapePosition(this.camera_offset), intersection);
-      if ( asteroid.update(this.perlin, dt) ){
+      if ( asteroid.update(this.perlin, this.particles, dt) ){
         this.asteroids.splice(this.asteroids.indexOf(asteroid), 1);
-        let center = { x: 0, y: 0 };
-        asteroid_shape.forEach(element => {
-          center.x += element.x;
-          center.y += element.y;
-        });
-        center.x /= asteroid_shape.length;
-        center.y /= asteroid_shape.length;
         
         for (let i = 0; i < 100; i++) {
           this.particles.emit(
@@ -220,10 +219,10 @@ export class Game {
     const step_val = 28;
     let start_pos = -Math.floor(this.camera_offset.x / step_val) * step_val - step_val;
     let tree_value;
-    let tree_prev_step = 0;
-    for (let i = start_pos-step_val; i < canvas.width + this.player.x+step_val; i += step_val){
+    let tree_prev_step = 2;
+    for (let i = start_pos-step_val*2; i < canvas.width + this.player.x+step_val*2; i += step_val){
       tree_value = this.tree_perlin.getVal(i/20);
-      if (tree_prev_step > 2 && tree_value > 0.98){
+      if (tree_prev_step > 2 && tree_value > (1.0 - PROB_TREE)){
         const idx = Math.floor(this.perlin.getVal(i*200 + 100)*N_DIFFERENT_TREES);
         const initial_pos = {x : i + this.camera_offset.x, y: this.perlin.getVal(i / 200) * 500 + this.camera_offset.y};
         this.trees[idx].draw(ctx, initial_pos, this.camera_offset);

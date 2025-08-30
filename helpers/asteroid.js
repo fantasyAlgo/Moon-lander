@@ -89,7 +89,7 @@ export function make_asteroid(player_pos) {
     points: points,
     position: position,
     direction: direction,
-    update: (perlin, dt=1) => {
+    update: (perlin, particles, dt=1) => {
       let hasCollapsed = false;
       points.forEach((el) => {
         el.x += direction.x*dt;
@@ -109,6 +109,18 @@ export function make_asteroid(player_pos) {
       }
       return shape
     },
+    getCenter: (asteroid_shape) => {
+      if (asteroid_shape.length == 0) return {x: -1000, y: -1000};
+      let center = { x: 0, y: 0 };
+      asteroid_shape.forEach(element => {
+        center.x += element.x;
+        center.y += element.y;
+      });
+      center.x /= asteroid_shape.length;
+      center.y /= asteroid_shape.length;
+      return center;
+    },
+
     draw: (ctx, camera_offset) => {
       ctx.beginPath();
       ctx.moveTo(
