@@ -4,10 +4,12 @@ import { RocketParticleSystem } from "./helpers/rocket.js";
 import { make_sky } from "./helpers/sky.js";
 import { make_asteroid } from "./helpers/asteroid.js";
 import { collisionSAT } from "./helpers/collisions.js";
-import { INITIAL_FUEL, MIN_HEIGHT_DUST, SPAWN_ASTEROID_PROB } from "./settings.js";
+import { INITIAL_FUEL, MIN_HEIGHT_DUST, N_DIFFERENT_TREES, SPAWN_ASTEROID_PROB } from "./settings.js";
+import { make_tree } from "./helpers/trees.js";
 
 export class Game {
   perlin = new Simple1DNoise();
+  tree_perlin = new Simple1DNoise();
 
   camera_offset = { x: 0, y: 0 };
   goUp = false;
@@ -17,7 +19,10 @@ export class Game {
   dead_time = 0;
   mouse_coord = { x: 0, y: 0 };
   is_boosting = 0;
+
   asteroids = [];
+  trees = [];
+
   player_particles = 500;
 
   pageNeeded = 0;
@@ -29,6 +34,11 @@ export class Game {
     this.player = new Player(ctx, 10, 1, 25, 50, "#929990", player_weight, INITIAL_FUEL);
     this.boost_time = boost_duration;
     this.player_gas = { y: 160 / player_vel, x: 180 / player_vel };
+    for (let i = 0; i < N_DIFFERENT_TREES; i++)
+      this.trees.push(make_tree(
+        Math.PI/3 + 0.5*(Math.random()-0.5), //0.5 + Math.random()*(Math.PI-0.5), 
+        70, 
+        3 + Math.floor(Math.random()*4), 1.2 + Math.random()/2.0));
 
     this.player.move(0, -400);
   }
@@ -124,8 +134,8 @@ export class Game {
         this.is_boosting && this.boost_time > 0 ? 2.3 : 1.0,
       );
       let attractPoint = this.generateAttractPoints();
-      if ((attractPoint[1]- (this.player.lst[1][1] + this.camera_offset.y) < MIN_HEIGHT_DUST) && Math.abs(this.player.totalRotation) < 0.6){
-        console.log(this.player.lst[1][1] + this.camera_offset.y - attractPoint[1]);
+      if ((attractPoint[1] - (this.player.lst[1][1] + this.camera_offset.y) < MIN_HEIGHT_DUST) && Math.abs(this.player.totalRotation) < 0.6){
+        //console.log(this.player.lst[1][1] + this.camera_offset.y - attractPoint[1]);
         let howNear = (attractPoint[1]- (this.player.lst[1][1] + this.camera_offset.y))/20;
         for (let i = 0; i < 3; i++) {
           let t = Math.random()
@@ -206,6 +216,24 @@ export class Game {
     ctx.stroke();
   }
 
+  drawTrees(ctx){
+    const step_val = 28;
+    let start_pos = -Math.floor(this.camera_offset.x / step_val) * step_val - step_val;
+    let tree_value;
+    let tree_prev_step = 0;
+    for (let i = start_pos-step_val; i < canvas.width + this.player.x+step_val; i += step_val){
+      tree_value = this.tree_perlin.getVal(i/20);
+      if (tree_prev_step > 2 && tree_value > 0.98){
+        const idx = Math.floor(this.perlin.getVal(i*200 + 100)*N_DIFFERENT_TREES);
+        const initial_pos = {x : i + this.camera_offset.x, y: this.perlin.getVal(i / 200) * 500 + this.camera_offset.y};
+        this.trees[idx].draw(ctx, initial_pos, this.camera_offset);
+        tree_prev_step = 0;
+      }
+      tree_prev_step += 1
+    }
+
+  }
+
 
   drawText(ctx){
     if (this.died) return
@@ -217,6 +245,14 @@ export class Game {
       10,
       60,
     );
+
+    let attractPoint = this.generateAttractPoints();
+    if (attractPoint[1] - (this.player.lst[1][1] + this.camera_offset.y) < MIN_HEIGHT_DUST*2) {
+      let alignP1 = this.player.lst[1][1] + this.camera_offset.y - attractPoint[0]
+      let alignP2 = this.player.lst[2][1] + this.camera_offset.y - attractPoint[2]
+      ctx.fillText("align left: " + -Math.floor(alignP1*100.0)/100.0, this.canvas.width-200, 30);
+      ctx.fillText("align right: " + -Math.floor(alignP2*100.0)/100.0, this.canvas.width-200, 60);
+    }
 
   }
 
@@ -230,6 +266,7 @@ export class Game {
       this.camera_offset.y -= 0.5 * (this.dead_time / 100);
       this.sky.draw(this.camera_offset);
       this.particles.draw()
+      this.drawTrees(ctx);
       this.drawTerrain(ctx);
       return
     }
@@ -240,7 +277,7 @@ export class Game {
     this.asteroids.forEach((asteroid) => {
       asteroid.draw(ctx, this.camera_offset);
     });
-
+    this.drawTrees(ctx);
     this.drawTerrain(ctx);
   }
 

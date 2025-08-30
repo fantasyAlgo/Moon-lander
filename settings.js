@@ -11,5 +11,5 @@ export const MAX_IMPACT_VEL = levels[1];
 export const MIN_ALIGNMENT = levels[2];
 export const INITIAL_FUEL = levels[3];
 export const MIN_HEIGHT_DUST = 100;
-
+export const N_DIFFERENT_TREES = 10;
 
