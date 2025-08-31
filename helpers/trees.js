@@ -11,7 +11,7 @@ export function make_tree(tAngle=Math.PI/4, tSize = 100, tLevel = 5, tRatio = 2)
     pos.x += Math.sin(rot)*size;
     pos.y += Math.cos(rot)*size;
     lst.push({x: pos.x, y: pos.y});
-    console.log("new pos: ", pos)
+    //console.log("new pos: ", pos)
     rot -= tAngle;
     make(size/tRatio, level-1);
     rot += tAngle*2.0;
@@ -22,12 +22,6 @@ export function make_tree(tAngle=Math.PI/4, tSize = 100, tLevel = 5, tRatio = 2)
     lst.push({x: pos.x, y: pos.y});
   }
   make(tSize, tLevel);
-  console.log("baka");
-  for (let i = 0; i < lst.length; i++) {
-    const e = lst[i];
-    console.log(e.x, e.y);
-  }
-  console.log("size baka: ", lst.length)
   return {
     points: lst,
     draw: (ctx, pos, camera_offset) => {

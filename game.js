@@ -160,14 +160,14 @@ export class Game {
         this.asteroids.splice(this.asteroids.indexOf(asteroid), 1);
         this.initDiedAnimation()
       }
-      console.log(asteroid_shape)
+      //console.log(asteroid_shape)
       let center = asteroid.getCenter(asteroid_shape);
+      const sizeAsteroid = (center.x - asteroid_shape[0].x)*(center.x - asteroid_shape[0].x) + (center.y - asteroid_shape[0].y)*(center.y - asteroid_shape[0].y);
       const ast_speed = 0.5;
 
       this.particles.emit({x: center.x + 10.0*(Math.random()-0.5), y: center.y + 10.0*(Math.random()-0.5)} ,
         { x: -asteroid.direction.x*ast_speed, y: -asteroid.direction.y*ast_speed }, "#916846", 
-        { x: -asteroid.direction.x*ast_speed, y: -asteroid.direction.y*ast_speed }, 2.0);
-      //console.log(asteroid.points, this.player.getShapePosition(this.camera_offset), intersection);
+        { x: -asteroid.direction.x*ast_speed, y: -asteroid.direction.y*ast_speed }, sizeAsteroid/600.0);
       if ( asteroid.update(this.perlin, this.particles, dt) ){
         this.asteroids.splice(this.asteroids.indexOf(asteroid), 1);
         
