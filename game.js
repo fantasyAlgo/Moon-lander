@@ -81,8 +81,8 @@ export class Game {
     for (let i = 0; i < this.player_particles; i++) {
       this.particles.emit(
         {
-          x: this.player.lst[3][0] + this.camera_offset.x,
-          y: this.player.lst[3][1] + this.camera_offset.y,
+          x: this.player.lst[3][0] ,
+          y: this.player.lst[3][1] ,
         },
         { x: Math.random() * 2 - 1, y: Math.random() * 2 - 1 },
         i % 2 == 0 ? "#916846" : "#929990",
@@ -125,8 +125,8 @@ export class Game {
       this.rocket_up(dt * (this.is_boosting && this.boost_time > 0 ? 4.0 : 1.0));
       this.particles.emit(
         {
-          x: this.player.lst[3][0] + this.camera_offset.x,
-          y: this.player.lst[3][1] + this.camera_offset.y,
+          x: this.player.lst[3][0],
+          y: this.player.lst[3][1],
         },
         { x: -Math.sin(this.player.totalRotation), y: Math.cos(this.player.totalRotation) },
         this.is_boosting && this.boost_time > 0 ? "#cc9e78" : "#916846",
@@ -136,18 +136,18 @@ export class Game {
       let attractPoint = this.generateAttractPoints();
       if ((attractPoint[1] - (this.player.lst[1][1] + this.camera_offset.y) < MIN_HEIGHT_DUST) && Math.abs(this.player.totalRotation) < 0.6){
         //console.log(this.player.lst[1][1] + this.camera_offset.y - attractPoint[1]);
-        let howNear = (attractPoint[1]- (this.player.lst[1][1] + this.camera_offset.y))/20;
+        let howNear = (attractPoint[1]- (this.player.lst[1][1] + this.camera_offset.y))/40;
         for (let i = 0; i < 3; i++) {
           let t = Math.random()
           this.particles.emit(
             {
-              x: this.player.lst[0][0]*t + this.player.lst[3][0]*(1-t)  + this.camera_offset.x,
-              y: attractPoint[0]*t + attractPoint[2]*(1-t) + 0.1
+              x: this.player.lst[0][0]*t + this.player.lst[3][0]*(1-t),
+              y: attractPoint[0]*t + attractPoint[2]*(1-t) + 0.1 - this.camera_offset.y,
             },
-            { x: -Math.sin(this.player.totalRotation), y: Math.cos(this.player.totalRotation) },
+            { x: 2.0*(this.player.force.x + (2.0*Math.random()-1))/howNear, y: -0.25 },
             "#fafaff",
-            { x: 2.0*(this.player.force.x + (2.0*Math.random()-1))/howNear, y: -0.5 },
-            1.0,
+            null,
+            1.0, 20 
           )
         }
       }
@@ -165,20 +165,21 @@ export class Game {
       const sizeAsteroid = (center.x - asteroid_shape[0].x)*(center.x - asteroid_shape[0].x) + (center.y - asteroid_shape[0].y)*(center.y - asteroid_shape[0].y);
       const ast_speed = 0.5;
 
-      this.particles.emit({x: center.x + 10.0*(Math.random()-0.5), y: center.y + 10.0*(Math.random()-0.5)} ,
+      this.particles.emit({x: center.x - this.camera_offset.x, y: center.y - this.camera_offset.y} ,
         { x: -asteroid.direction.x*ast_speed, y: -asteroid.direction.y*ast_speed }, "#916846", 
-        { x: -asteroid.direction.x*ast_speed, y: -asteroid.direction.y*ast_speed }, sizeAsteroid/600.0);
+        { x: -asteroid.direction.x*ast_speed, y: -asteroid.direction.y*ast_speed }, sizeAsteroid/600.0, sizeAsteroid/300);
       if ( asteroid.update(this.perlin, this.particles, dt) ){
         this.asteroids.splice(this.asteroids.indexOf(asteroid), 1);
         
         for (let i = 0; i < 100; i++) {
+          const vel = { x: Math.random() * 2 - 1, y: Math.random() * 2 - 1 };
           this.particles.emit(
             {
-              x: center.x,
-              y: center.y
+              x: center.x - this.camera_offset.x,
+              y: center.y - this.camera_offset.y
             },
-            { x: Math.random() * 2 - 1, y: Math.random() * 2 - 1 },
-            i % 2 == 0 ? "#fafaff" : "#929990",
+            vel,
+            i % 2 == 0 ? "#fafaff" : "#929990", {x: vel.x, y: vel.y}, sizeAsteroid/700.0
           );
         }
       }
@@ -187,7 +188,7 @@ export class Game {
     });
 
     this.generate()
-    this.player.update(dt);
+    this.player.update(dt);``
     this.particles.update();
   }
 
@@ -264,7 +265,7 @@ export class Game {
       this.dead_time += 0.5;
       this.camera_offset.y -= 0.5 * (this.dead_time / 100);
       this.sky.draw(this.camera_offset);
-      this.particles.draw()
+      this.particles.draw(this.camera_offset)
       this.drawTrees(ctx);
       this.drawTerrain(ctx);
       return
@@ -272,7 +273,7 @@ export class Game {
 
     this.sky.draw(this.camera_offset);
     this.player.draw(this.camera_offset);
-    this.particles.draw();
+    this.particles.draw(this.camera_offset);
     this.asteroids.forEach((asteroid) => {
       asteroid.draw(ctx, this.camera_offset);
     });

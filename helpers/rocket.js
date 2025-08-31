@@ -7,12 +7,12 @@ export class RocketParticleSystem {
     this.ctx = ctx;
     this.active_particles = [];
   }
-  emit(start_pos, vel, color = "#916846", end_vel = null, avr_size = 1) {
+  emit(start_pos, vel, color = "#916846", end_vel = null, avr_size = 1, pos_var = 5) {
     const start_time = 1 + (Math.random() * 2 - 1) / 10;
     this.active_particles.push({
       start_time: start_time,
       time_rem: start_time,
-      pos: start_pos,
+      pos: {x: start_pos.x + pos_var*(Math.random()-0.5), y: start_pos.y + pos_var*(Math.random()-0.5)} ,
       vel: {
         x: vel.x + (Math.random() * 2 - 1) / 2,
         y: vel.y + (Math.random() * 2 - 1) / 10,
@@ -60,7 +60,7 @@ export class RocketParticleSystem {
       this.active_particles[i].time_rem -= 0.01;
     }
   }
-  draw() {
+  draw(camera_offset) {
     let length = this.active_particles.length;
     let size;
     //let particle;
@@ -72,7 +72,7 @@ export class RocketParticleSystem {
         0,
         particle.start_time - particle.time_rem * particle.start_time,
       );
-      this.ctx.fillRect(particle.pos.x, particle.pos.y, size, size);
+      this.ctx.fillRect(particle.pos.x + camera_offset.x, particle.pos.y + camera_offset.y, size, size);
     }
   }
 }
