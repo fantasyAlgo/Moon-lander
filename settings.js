@@ -15,3 +15,14 @@ export const MIN_HEIGHT_DUST = 100;
 export const N_DIFFERENT_TREES = 10;
 export const PROB_TREE = 0.05;
 
+
+export const GRAVITY_STRENGTH = 0.01;
+export const ROBOT_FLOOR_DISTANCE = 10;
+
+
+export const SATResult = {
+  COLLISION: 1,
+  NOT_COLLISION: 10000,
+};
+
+

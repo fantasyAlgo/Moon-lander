@@ -1,26 +1,5 @@
-
-//// Making a little Vector class /////
-const make_vector2d = (x, y) => {
-  return {
-    x: x,
-    y: y,
-    distance: Math.sqrt(x * x + y * y),
-    cross: (vec) => x * vec.y - y * vec.x,
-    dot: (vec) => x * vec.x + y * vec.y,
-  };
-};
-const vector2dSub = (v1, v2) => make_vector2d(v1.x - v2.x, v1.y - v2.y);
-const vector2dAdd = (v1, v2) => make_vector2d(v1.x + v2.x, v1.y + v2.y);
-const vector2dNorm = (v1) =>
-  make_vector2d(v1.x / v1.distance, v1.y / v1.distance);
-// Calculate the minimum and maximum value of dot product with an axis (v) and each point of (points)
-const vector2dProjectMinMax = (v, points) => {
-  let dottedPoints = [];
-  let length = points.length;
-  for (let i = 0; i < length; i++) dottedPoints.push(v.dot(points[i]));
-  return [Math.min(...dottedPoints), Math.max(...dottedPoints)];
-};
-//////////////
+import { SATResult } from "../settings.js";
+import { make_vector2d, vector2dProjectMinMax,  vector2dSub, vector2dNorm} from "./Vector2.js";
 
 function isConvexPoint(points) {
   const v1 = vector2dSub(points[1], points[0]);
@@ -42,6 +21,7 @@ function isInTriangle(point, triangle) {
   const cp = vector2dSub(point, c);
   return ab.cross(ap) <= 0 && bc.cross(bp) <= 0 && ca.cross(cp) <= 0;
 }
+
 
 // I assume points is an array of objects with x and y; this code does not work if the polygon has:
 // An Hole
@@ -92,6 +72,8 @@ export function earClipping(points) {
   return tri_list;
 }
 
+
+
 function normalVector(point1, point2) {
   let edge = vector2dSub(point2, point1);
   edge = vector2dNorm(edge);
@@ -119,6 +101,8 @@ function howMuchOverlap(p1, p2) {
 const doesOverlap = (p1, p2) =>
   (p1[0] < p2[0] && p2[0] < p1[1]) || (p1[0] < p2[1] && p2[1] < p1[1]);
 
+
+
 export function collisionSAT(pol1, pol2) {
   const axes1 = getAxes(pol1);
   const axes2 = getAxes(pol2);
@@ -132,7 +116,7 @@ export function collisionSAT(pol1, pol2) {
     p2 = vector2dProjectMinMax(axes1[i], pol2);
     //console.log(p1, p2, i);
     overlapValue = howMuchOverlap(p1, p2);
-    if (overlapValue == -1) return 10000;
+    if (overlapValue == -1) return SATResult.NOT_COLLISION;
     else overlapFinalValue = Math.min(overlapValue, overlapFinalValue);
   }
   axLength = axes2.length;
@@ -141,7 +125,7 @@ export function collisionSAT(pol1, pol2) {
     p2 = vector2dProjectMinMax(axes2[i], pol2);
     //console.log(p1, p2, i);
     overlapValue = howMuchOverlap(p1, p2);
-    if (overlapValue == -1) return 10000;
+    if (overlapValue == -1) return SATResult.NOT_COLLISION;
     else overlapFinalValue = Math.min(overlapValue, overlapFinalValue);
   }
   return overlapFinalValue;

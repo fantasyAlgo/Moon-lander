@@ -4,8 +4,10 @@ import { RocketParticleSystem } from "./helpers/rocket.js";
 import { make_sky } from "./helpers/sky.js";
 import { make_asteroid } from "./helpers/asteroid.js";
 import { collisionSAT } from "./helpers/collisions.js";
-import { INITIAL_FUEL, MIN_HEIGHT_DUST, N_DIFFERENT_TREES, PROB_TREE, SPAWN_ASTEROID_PROB } from "./settings.js";
+import { INITIAL_FUEL, MIN_HEIGHT_DUST, N_DIFFERENT_TREES, PROB_TREE, SATResult, SPAWN_ASTEROID_PROB } from "./settings.js";
 import { make_tree } from "./helpers/trees.js";
+import { make_vector2d } from "./helpers/Vector2.js";
+import { Rover } from "./helpers/Rover.js";
 
 export class Game {
   perlin = new Simple1DNoise();
@@ -41,6 +43,7 @@ export class Game {
         3 + Math.floor(Math.random()*4), 1.2 + Math.random()/2.0));
 
     this.player.move(0, -400);
+    this.rover = new Rover({x: 0.0, y: 100});
   }
   handleKeyDown(e){
     if ((e.key == "w" || this.goUp) && this.player.fuel > 0) this.goUp = true;
@@ -93,6 +96,11 @@ export class Game {
   }
 
   update(dt=1){
+    const collision_indx = this.rover.update(this.perlin, this.asteroids, dt);
+    if (collision_indx >= 0){
+      this.asteroids[collision_indx].emitDeathParticles(this.particles);
+      this.asteroids.splice(collision_indx, 1);
+    }
     if (this.dead){
       this.generate()
       this.particles.update();
@@ -154,34 +162,23 @@ export class Game {
 
     }
     this.asteroids.forEach((asteroid) => {
-      const asteroid_shape = asteroid.getShape(this.camera_offset);
-      const intersection = collisionSAT(asteroid_shape, this.player.getShapePosition(this.camera_offset));
-      if ( intersection != 10000 ){
+      const asteroid_shape = asteroid.getShape();
+      const intersection = collisionSAT(asteroid_shape, this.player.getShapePosition(make_vector2d(0.0, 0.0)));
+      if ( intersection != SATResult.NOT_COLLISION){
         this.asteroids.splice(this.asteroids.indexOf(asteroid), 1);
         this.initDiedAnimation()
       }
       //console.log(asteroid_shape)
-      let center = asteroid.getCenter(asteroid_shape);
+      let center = asteroid.getCenter();
       const sizeAsteroid = (center.x - asteroid_shape[0].x)*(center.x - asteroid_shape[0].x) + (center.y - asteroid_shape[0].y)*(center.y - asteroid_shape[0].y);
       const ast_speed = 0.5;
 
-      this.particles.emit({x: center.x - this.camera_offset.x, y: center.y - this.camera_offset.y} ,
-        { x: -asteroid.direction.x*ast_speed, y: -asteroid.direction.y*ast_speed }, "#916846", 
-        { x: -asteroid.direction.x*ast_speed, y: -asteroid.direction.y*ast_speed }, sizeAsteroid/600.0, sizeAsteroid/300);
+      this.particles.emit({x: center.x, y: center.y } ,
+        { x: -asteroid.dir.x*ast_speed, y: -asteroid.dir.y*ast_speed }, "#916846", 
+        { x: -asteroid.dir.x*ast_speed, y: -asteroid.dir.y*ast_speed }, sizeAsteroid/600.0, sizeAsteroid/300);
       if ( asteroid.update(this.perlin, this.particles, dt) ){
+        asteroid.emitDeathParticles(this.particles);
         this.asteroids.splice(this.asteroids.indexOf(asteroid), 1);
-        
-        for (let i = 0; i < 100; i++) {
-          const vel = { x: Math.random() * 2 - 1, y: Math.random() * 2 - 1 };
-          this.particles.emit(
-            {
-              x: center.x - this.camera_offset.x,
-              y: center.y - this.camera_offset.y
-            },
-            vel,
-            i % 2 == 0 ? "#fafaff" : "#929990", {x: vel.x, y: vel.y}, sizeAsteroid/700.0
-          );
-        }
       }
 
 
@@ -279,6 +276,7 @@ export class Game {
     });
     this.drawTrees(ctx);
     this.drawTerrain(ctx);
+    this.rover.Draw(ctx, this.camera_offset);
   }
 
 

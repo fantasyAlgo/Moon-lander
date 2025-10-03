@@ -1,3 +1,5 @@
+import { Polygon } from "./Polygon.js";
+import { make_vector2d } from "./Vector2.js";
 
 
 
@@ -57,95 +59,64 @@ function convex_hull(points){
 
 
 
-export function make_asteroid(player_pos) {
-  const generate_number = (min, max) =>
-    Math.floor(Math.random() * (max - min) + min);
-  const pol_n = generate_number(4, 9);
-  const size = generate_number(20, 70);
+export class Asteroid extends Polygon{
+  constructor(player_pos){
+    const generate_number = (min, max) =>
+      Math.floor(Math.random() * (max - min) + min);
+    const pol_n = generate_number(4, 9);
+    const size = generate_number(20, 70);
 
-  let points = [];
-  const step = (Math.PI / pol_n) * 2;
-  for (
-    let init_angle = Math.PI / pol_n;
-    init_angle <= Math.PI * 2;
-    init_angle += step
-  ) {
-    points.push({
-      x: size * Math.cos(init_angle) + generate_number(-10, 10),
-      y: size * Math.sin(init_angle) + generate_number(-10, 10),
-    });
+    let points = [];
+    const step = (Math.PI / pol_n) * 2;
+    for (
+      let init_angle = Math.PI / pol_n;
+      init_angle <= Math.PI * 2;
+      init_angle += step
+    ) {
+      points.push({
+        x: size * Math.cos(init_angle) + generate_number(-10, 10),
+        y: size * Math.sin(init_angle) + generate_number(-10, 10),
+      });
+    }
+
+    points = convex_hull(points);
+    const pos = make_vector2d(player_pos.x + generate_number(-canvas.width / 2, canvas.width / 2), player_pos.y - canvas.height * 1);
+    super(pos, points);
+    this.dir = make_vector2d( generate_number(-5, 5), generate_number(1, 5))
   }
-  points = convex_hull(points);
+  update(perlin, particles, dt=1){
+    let hasCollapsed = false;
+    this.modelBody.forEach((el) => {
+      el.x += this.dir.x*dt;
+      el.y += this.dir.y*dt;
+      if (perlin.getVal((el.x + this.pos.x) / 200) * 500 <= el.y + this.pos.y)
+        hasCollapsed = true;
+    });
+    return hasCollapsed;
+  }
+  emitDeathParticles(particles){
+    const shape = this.getShape();
+    let center = this.getCenter();
+    const sizeAsteroid = (center.x - shape[0].x)*(center.x - shape[0].x) + (center.y - shape[0].y)*(center.y - shape[0].y);
 
-  let position = {
-    x: player_pos.x + generate_number(-canvas.width / 2, canvas.width / 2),
-    y: player_pos.y - canvas.height * 1,
-  };
-  const direction = {
-    x: generate_number(-5, 5),
-    y: generate_number(1, 5),
-  };
-  return {
-    points: points,
-    position: position,
-    direction: direction,
-    update: (perlin, particles, dt=1) => {
-      let hasCollapsed = false;
-      points.forEach((el) => {
-        el.x += direction.x*dt;
-        el.y += direction.y*dt;
-        if (perlin.getVal((el.x + position.x) / 200) * 500 <= el.y + position.y)
-          hasCollapsed = true;
-      });
-      return hasCollapsed;
-    },
-    getShape: (camera_offset) => {
-      let shape = []
-      for (let i = 0; i < points.length; i++) {
-        shape.push({
-          x: camera_offset.x + points[i].x + position.x,
-          y: camera_offset.y + points[i].y + position.y,
-        })
-      }
-      return shape
-    },
-    getCenter: (asteroid_shape) => {
-      if (asteroid_shape.length == 0) return {x: -1000, y: -1000};
-      let center = { x: 0, y: 0 };
-      asteroid_shape.forEach(element => {
-        center.x += element.x;
-        center.y += element.y;
-      });
-      center.x /= asteroid_shape.length;
-      center.y /= asteroid_shape.length;
-      return center;
-    },
-
-    draw: (ctx, camera_offset) => {
-      ctx.beginPath();
-      ctx.moveTo(
-        camera_offset.x + points[0].x + position.x,
-        camera_offset.y + points[0].y + position.y,
+    for (let i = 0; i < 100; i++) {
+      const vel = { x: Math.random() * 2 - 1, y: Math.random() * 2 - 1 };
+      particles.emit(
+        {
+          x: center.x,
+          y: center.y,
+        },
+        vel,
+        i % 2 == 0 ? "#fafaff" : "#929990", {x: vel.x, y: vel.y}, sizeAsteroid/700.0
       );
-      points.forEach((el) => {
-        ctx.lineTo(
-          camera_offset.x + el.x + position.x,
-          camera_offset.y + el.y + position.y,
-        );
-      });
-      ctx.lineTo(
-        camera_offset.x + points[0].x + position.x,
-        camera_offset.y + points[0].y + position.y,
-      );
-      ctx.closePath();
-      ctx.strokeStyle = "white";
-      ctx.lineWidth = 5;
-      ctx.fillStyle = "#121211";
+    }
+  }
+}
 
-      ctx.stroke();
-      ctx.fill();
-    },
-  };
+
+
+export function make_asteroid(player_pos) {
+  return new Asteroid(player_pos);
 }
 
 

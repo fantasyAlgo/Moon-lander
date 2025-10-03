@@ -26,6 +26,21 @@ export var Simple1DNoise = function() {
 
         return y * amplitude;
     };
+    const getDer = function( x ){
+        var scaledX = x * scale;
+        var xFloor = Math.floor(scaledX);
+        var t = scaledX - xFloor;
+        var tRemapSmoothstep = t * t * ( 3 - 2 * t );
+
+        /// Modulo using &#038;
+        var xMin = xFloor & MAX_VERTICES_MASK;
+        var xMax = ( xMin + 1 ) & MAX_VERTICES_MASK;
+        var dy = r[xMax]-r[xMin]
+
+        //var y = lerp( r[ xMin ], r[ xMax ], tRemapSmoothstep );
+
+        return dy * amplitude;
+    }
 
     /**
     * Linear interpolation function.
@@ -41,6 +56,7 @@ export var Simple1DNoise = function() {
     // return the API
     return {
         getVal: getVal,
+        getDer: getDer,
         setAmplitude: function(newAmplitude) {
             amplitude = newAmplitude;
         },
