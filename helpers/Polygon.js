@@ -11,9 +11,10 @@ export class Polygon {
   getCenter(){
     let v = make_vector2d(0.0, 0.0);
     for (let i = 0; i < this.modelBody.length; i++) 
-      v = vector2dAdd(v, vector2dAdd(this.modelBody[i], this.pos))
+      v = vector2dAdd(v, this.modelBody[i])
     v.x /= this.modelBody.length;
     v.y /= this.modelBody.length;
+    v = vector2dAdd(v, this.pos);
     return v;
   }
   getShape(){

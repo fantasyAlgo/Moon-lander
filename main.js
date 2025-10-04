@@ -27,7 +27,7 @@ function animate() {
   game.update(dt);
   game.draw(ctx);
   game.drawText(ctx);
-  if (game.dead_time > 1000) window.location.href = "game.html";
+  if (game.dead_time > 100) window.location.href = "game.html";
   if (game.pageNeeded == 1) window.location.href = "won.html"
   requestAnimationFrame(animate);
 }
