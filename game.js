@@ -6,8 +6,10 @@ import { make_asteroid } from "./helpers/asteroid.js";
 import { collisionSAT } from "./helpers/collisions.js";
 import { INITIAL_FUEL, MIN_HEIGHT_DUST, N_DIFFERENT_TREES, PROB_TREE, SATResult, SPAWN_ASTEROID_PROB } from "./settings.js";
 import { make_tree } from "./helpers/trees.js";
-import { make_vector2d } from "./helpers/Vector2.js";
+import { make_vector2d, vector2Distance } from "./helpers/Vector2.js";
 import { Rover } from "./helpers/Rover.js";
+
+
 
 export class Game {
   perlin = new Simple1DNoise();
@@ -26,10 +28,13 @@ export class Game {
   trees = [];
 
   player_particles = 500;
-
   pageNeeded = 0;
+  total_time = 0.0;
+  width = 0.0;
 
   constructor(canvas, ctx, player_weight, boost_duration, player_vel){
+    this.width = canvas.width;
+
     this.canvas = canvas
     this.particles = new RocketParticleSystem(ctx);
     this.sky = make_sky(ctx, 40);
@@ -46,6 +51,41 @@ export class Game {
     this.rover = new Rover({x: 0.0, y: 100});
     this.camera_offset = make_vector2d(-this.player.pos.x + this.canvas.width / 2.0, -this.player.pos.y + this.canvas.height / 2);
   }
+
+  reset(ctx, player_weight, boost_duration, player_vel){
+    this.camera_offset = { x: 0, y: 0 };
+    this.goUp = false;
+    this.xRotation = 0;
+    this.attractPoint = [0, 0];
+    this.dead = false;
+    this.dead_time = 0;
+    this.mouse_coord = { x: 0, y: 0 };
+    this.is_boosting = 0;
+
+    this.asteroids = [];
+    this.trees = [];
+
+    this.player_particles = 500;
+    this.pageNeeded = 0;
+    this.total_time = 0.0;
+
+    this.particles = new RocketParticleSystem(ctx);
+    this.sky = make_sky(ctx, 40);
+    this.player = new Player(10, 1, 25, 50, "#929990", player_weight, INITIAL_FUEL, { y: 160 / player_vel, x: 180 / player_vel });
+    this.boost_time = boost_duration;
+
+    for (let i = 0; i < N_DIFFERENT_TREES; i++)
+      this.trees.push(make_tree(
+        Math.PI/3 + 0.5*(Math.random()-0.5), //0.5 + Math.random()*(Math.PI-0.5), 
+        70, 
+        3 + Math.floor(Math.random()*4), 1.2 + Math.random()/2.0));
+
+    this.player.updatePosition(make_vector2d(0.0, -400.0));   //move(0, -400);
+    this.rover = new Rover({x: 0.0, y: 100});
+    this.camera_offset = make_vector2d(-this.player.pos.x + this.canvas.width / 2.0, -this.player.pos.y + this.canvas.height / 2);
+  }
+
+
   handleKeyDown(e){
     if ((e.key == "w" || this.player.goUp) && this.player.fuel > 0) this.player.goUp = true;
     if (e.key == "Shift" && this.boost_time > 0) this.is_boosting = true;
@@ -92,11 +132,10 @@ export class Game {
   updateIfDead(dt){
     this.generate();
     this.updateAsteroids(dt);
-    this.particles.update();
+    this.particles.update(dt);
   }
   checkFloorCollision(attractPoint){
     if (this.dead){
-      this.updateIfDead();
       return true;
     };
     if (this.player.checkFloorCollision(attractPoint)){
@@ -134,15 +173,20 @@ export class Game {
   updateAsteroids(dt){
     this.asteroids.forEach((asteroid) => {
       const asteroid_shape = asteroid.getShape();
-      const intersection = collisionSAT(asteroid_shape, this.player.tShape);
-      if ( intersection != SATResult.NOT_COLLISION){
-        this.asteroids.splice(this.asteroids.indexOf(asteroid), 1);
-        this.initDiedAnimation()
+      let center = asteroid.getCenter(); 
+      let sizeAsteroid = Math.sqrt((center.x - asteroid_shape[0].x)*(center.x - asteroid_shape[0].x) + (center.y - asteroid_shape[0].y)*(center.y - asteroid_shape[0].y));
+
+      if (vector2Distance(center, this.player.pos) < (sizeAsteroid+100)){
+        //console.log("size: ", sizeAsteroid, vector2Distance(center, this.player.pos));
+        const intersection = collisionSAT(asteroid_shape, this.player.tShape);
+        if ( intersection != SATResult.NOT_COLLISION){
+          this.asteroids.splice(this.asteroids.indexOf(asteroid), 1);
+          this.initDiedAnimation()
+        }
       }
       //console.log(asteroid_shape)
-      let center = asteroid.getCenter();
-      const sizeAsteroid = (center.x - asteroid_shape[0].x)*(center.x - asteroid_shape[0].x) + (center.y - asteroid_shape[0].y)*(center.y - asteroid_shape[0].y);
       const ast_speed = 0.5;
+      sizeAsteroid = (center.x - asteroid_shape[0].x)*(center.x - asteroid_shape[0].x) + (center.y - asteroid_shape[0].y)*(center.y - asteroid_shape[0].y);
 
       this.particles.emit({x: center.x, y: center.y } ,
         { x: -asteroid.dir.x*ast_speed, y: -asteroid.dir.y*ast_speed }, "#916846", 
@@ -155,6 +199,7 @@ export class Game {
   }
 
   update(dt=1){
+    this.total_time += dt;
     const mouse_dir = make_vector2d(-this.mouse_coord.x + this.canvas.width / 2.0, -this.mouse_coord.y + this.canvas.height / 2);
 
     const collision_indx = this.rover.update(this.perlin, this.asteroids, dt);
@@ -171,7 +216,7 @@ export class Game {
 
 
     this.player.update(dt, mouse_dir, (this.is_boosting && this.boost_time > 0 ? 4.0 : 1.0));
-    this.particles.update();
+    this.particles.update(dt);
     this.updateAsteroids(dt);
 
     this.boost_time += dt * (this.is_boosting ? -1 : 0.1);
@@ -180,7 +225,7 @@ export class Game {
 
     //console.log(is_boosting, boost_time);
     if (this.player.goUp && this.player.fuel > 0) {
-      this.player.generateParticles(this.particles, this.is_boosting, this.boost_time);
+      this.player.generateParticles(this.particles, this.is_boosting, this.boost_time, 100.0/dt);
       this.generateDustParticles(attractPoint);
     }
 
@@ -232,8 +277,10 @@ export class Game {
 
 
   drawText(ctx){
-    if (this.died) return
     ctx.fillStyle = "white";
+    ctx.font = "30px Arial";
+    ctx.fillText("" + Math.floor(this.total_time*100)/10000.0, this.width/2.0-this.width/32, 40);
+    if (this.died) return
     ctx.font = "20px Arial";
     ctx.fillText("Fuel: " + this.player.fuel, 10, 30);
     ctx.fillText(

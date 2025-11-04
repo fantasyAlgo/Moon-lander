@@ -28,7 +28,7 @@ export class RocketParticleSystem {
           : null,
     });
   }
-  update() {
+  update(dt=1.0) {
     let length = this.active_particles.length;
     let curr_vel;
     //let particle;
@@ -55,9 +55,9 @@ export class RocketParticleSystem {
               ),
             }
           : {x: particle.vel.x, y: particle.vel.y} ;
-      this.active_particles[i].pos.x += curr_vel.x;
-      this.active_particles[i].pos.y += curr_vel.y;
-      this.active_particles[i].time_rem -= 0.01;
+      this.active_particles[i].pos.x += curr_vel.x*dt;
+      this.active_particles[i].pos.y += curr_vel.y*dt;
+      this.active_particles[i].time_rem -= 0.01*dt;
     }
   }
   draw(camera_offset) {

@@ -1,189 +1,399 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Get Ready to Play!</title>
-        <style>
-            body {
-                background-color: #7a2a2a; /* Light gray background */
-                font-family: Arial, sans-serif;
-                margin: 0;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                min-height: 100vh; /* Ensures content fills viewport */
-                color: #1c1c1b;
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL Game Loader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Landing page */
+        #landingPage {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        
+        #landingPage.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .landing-content {
+            text-align: center;
+            max-width: 600px;
+            padding: 40px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        h1 {
+            font-size: 3em;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+            color: #ffffff;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+            animation: titleGlow 3s ease-in-out infinite;
+        }
+        
+        @keyframes titleGlow {
+            0%, 100% { text-shadow: 0 0 30px rgba(255, 255, 255, 0.3); }
+            50% { text-shadow: 0 0 50px rgba(255, 255, 255, 0.5), 0 0 80px rgba(99, 78, 145, 0.3); }
+        }
+        
+        .subtitle {
+            font-size: 1.1em;
+            color: #b0b0b0;
+            margin-bottom: 50px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        
+        #loadButton {
+            background: linear-gradient(135deg, #634e91 0%, #8b6bb7 100%);
+            color: #ffffff;
+            border: none;
+            padding: 16px 48px;
+            font-size: 0.95em;
+            font-weight: 600;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            border-radius: 5px;
+            box-shadow: 0 4px 20px rgba(99, 78, 145, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #loadButton::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        #loadButton:hover::before {
+            left: 100%;
+        }
+        
+        #loadButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(99, 78, 145, 0.6);
+        }
+        
+        #loadButton:active {
+            transform: translateY(0);
+        }
+        
+        #loadButton:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Loader */
+        .loader {
+            display: none;
+            margin-top: 40px;
+        }
+        
+        .loader.active {
+            display: block;
+        }
+        
+        .progress-bar-container {
+            width: 300px;
+            height: 3px;
+            background: rgba(255,255,255,0.1);
+            margin: 0 auto 20px;
+            overflow: hidden;
+            border-radius: 2px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #634e91, #8b6bb7);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(99, 78, 145, 0.6);
+        }
+        
+        .progress-text {
+            font-size: 0.85em;
+            color: #999;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Game container */
+        #gameContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            background: #000000;
+        }
+        
+        #gameContainer.active {
+            display: block;
+        }
+        
+        .container {
+            background: rgba(248, 245, 245, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), 0 0 60px rgba(99, 78, 145, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: containerFadeIn 0.6s ease-out;
+        }
+        
+        @keyframes containerFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
             }
-
-            .container {
-                background-color: #f8f5f5; /* White container */
-                border-radius: 10px; /* Rounded corners */
-                padding: 30px;
-                text-align: center;
-                box-shadow: 0 0 50px rgba(255, 255, 255, 0.2); /* Subtle shadow */
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
-
-            h1 {
-                font-size: 2em;
-                margin-bottom: 15px;
+        }
+        
+        .container h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #1c1c1b;
+            text-shadow: none;
+            animation: none;
+        }
+        
+        .container p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.05em;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1c1c1b;
+            text-align: left;
+            font-size: 0.95em;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+            color: #1c1c1b;
+        }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #634e91;
+            box-shadow: 0 0 0 3px rgba(99, 78, 145, 0.1);
+        }
+        
+        input[type="number"]::placeholder {
+            color: #999;
+        }
+        
+        #backgroundVideo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            z-index: 0;
+            opacity: 0.4;
+        }
+        
+        #backgroundVideo::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, rgba(10, 10, 10, 0.7) 100%);
+            z-index: 1;
+        }
+        
+        select {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            background-color: white;
+            font-size: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            color: #1c1c1b;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23634e91' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6,9 12,15 18,9'></polyline></svg>");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 18px;
+            transition: all 0.3s ease;
+        }
+        
+        select:hover {
+            border-color: #634e91;
+            box-shadow: 0 0 0 3px rgba(99, 78, 145, 0.1);
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #634e91;
+            box-shadow: 0 0 0 3px rgba(99, 78, 145, 0.15);
+        }
+        
+        select option {
+            color: #1c1c1b;
+            background-color: white;
+            padding: 10px;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        /* Floating particles effect */
+        .particle {
+            position: fixed;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.6;
+            animation: float 20s infinite;
+            z-index: 1;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
             }
-
-            label {
-                display: block;
-                margin-bottom: 5px;
-                font-weight: bold;
+            10% {
+                opacity: 0.6;
             }
-
-            input[type="number"] {
-                width: 100%;
-                padding: 10px;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                margin-bottom: 15px;
+            90% {
+                opacity: 0.6;
             }
-
-            .button {
-                background-color: #634e91; /* Green button */
-                border: none;
-                color: white;
-                padding: 10px 20px;
-                text-align: center;
-                text-decoration: none;
-                display: inline-block;
-                font-size: 16px;
-                border-radius: 5px;
-                cursor: pointer;
+            100% {
+                transform: translateY(-100vh) translateX(50px);
+                opacity: 0;
             }
-
-            .button:hover {
-                background-color: #3a295e; /* Darker green on hover */
-            }
-            #backgroundVideo {
-                position: fixed; /* Positions the video behind the content */
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                object-fit: cover; /* Scales the video to cover the viewport */
-                z-index: -1; /* Places the video behind other elements */
-            }
-          select {
-              width: 100%;
-              padding: 10px 15px;
-              border: 1px solid #ccc;
-              border-radius: 5px;
-              margin-bottom: 15px;
-              background-color: white;
-              font-size: 16px;
-              font-family: Arial, sans-serif;
-              color: #1c1c1b;
-              cursor: pointer;
-              appearance: none; /* Removes default browser styling */
-              background-image: url("data:image/svg+xml;charset=UTF-8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23634e91' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6,9 12,15 18,9'></polyline></svg>");
-              background-repeat: no-repeat;
-              background-position: right 10px center;
-              background-size: 16px;
-              padding-right: 40px; /* Make room for the custom arrow */
-          }
-
-          select:hover {
-              border-color: #634e91;
-              box-shadow: 0 0 5px rgba(99, 78, 145, 0.2);
-          }
-
-          select:focus {
-              outline: none;
-              border-color: #634e91;
-              box-shadow: 0 0 8px rgba(99, 78, 145, 0.3);
-          }
-
-          /* Style for option elements */
-          select option {
-              color: #1c1c1b;
-              background-color: white;
-              padding: 8px;
-          }
-
-          /* Alternative styling if you want a more modern look */
-          .select-wrapper {
-              position: relative;
-              display: inline-block;
-              width: 100%;
-              margin-bottom: 15px;
-          }
-
-          .select-wrapper::after {
-              content: '';
-              position: absolute;
-              top: 50%;
-              right: 15px;
-              transform: translateY(-50%);
-              width: 0;
-              height: 0;
-              border-left: 6px solid transparent;
-              border-right: 6px solid transparent;
-              border-top: 8px solid #634e91;
-              pointer-events: none;
-          }
-
-          .select-wrapper select {
-              margin-bottom: 0;
-          }
-        </style>
-    </head>
-    <body>
+        }
+    </style>
+</head>
+<body>
+    <div id="landingPage">
         <video autoplay muted loop id="backgroundVideo">
-            <source src="moonVideo.mp4" type="video/mp4" />
             Your browser does not support the video tag.
         </video>
-        <div class="container">
-            <h1>Get Ready for the Adventure!</h1>
-            <p>Let's customize your moon-lander before we start.</p>
-            <form>
-                <label for="weight">What's your player's weight?</label>
-                <input
-                    type="number"
-                    id="weight"
-                    name="weight"
-                    placeholder="Generally around 200"
-                    required
-                />
-                <label for="velocity"
-                    >What's your player's starting velocity?</label
-                >
-                <input
-                    type="number"
-                    id="velocity"
-                    name="velocity"
-                    placeholder="Generally around 30"
-                    required
-                />
-                <label for="difficulty">What's the difficuly?</label>
-                <select id = "difficulty">
-                  <option value="easy">Easy</option>
-                  <option value="medium">Medium</option>
-                  <option value="hard">Hard</option>
-                </select>
-
-                <br />
-                <a onclick="saveInput()" href="game.html" class="button"
-                    >Let's Go!</a
-                >
-            </form>
+        
+        <div class="landing-content">
+            <h1>Moon landing</h1>
+            <p class="subtitle" id = "best_score" ></p>
+            
+            <div class="container">
+                <h1>Get Ready for the Adventure!</h1>
+                <p>Let's customize your moon-lander before we start.</p>
+                <form>
+                    <label for="weight">Spacecraft Weight</label>
+                    <input
+                        type="number"
+                        id="weight"
+                        name="weight"
+                        placeholder="Generally around 200"
+                        required
+                    />
+                    <label for="velocity">Starting Velocity</label>
+                    <input
+                        type="number"
+                        id="velocity"
+                        name="velocity"
+                        placeholder="Generally around 30"
+                        required
+                    />
+                    <label for="difficulty">Difficulty Level</label>
+                    <select id="difficulty">
+                        <option value="easy">Easy - Smooth Landing</option>
+                        <option value="medium" selected>Medium - Steady Pilot</option>
+                        <option value="hard">Hard - Expert Only</option>
+                    </select>
+                    <br />
+                    <button type="button" id="loadButton">Launch Mission</button>
+                  
+                    <div class="loader" id="loader">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="progressBar"></div>
+                        </div>
+                        <div class="progress-text" id="progressText">Initializing...</div>
+                    </div>
+                </form>
+            </div>
         </div>
-        <script>
-            function saveInput() {
-                var weight = document.getElementById("weight").value;
-                var velocity = document.getElementById("velocity").value;
-                var difficuly = document.getElementById("difficulty").value;
-                localStorage.setItem("weight", weight == "" ? 200 : weight);
-                localStorage.setItem("difficulty", difficulty.value);
-                localStorage.setItem(
-                    "velocity",
-                    velocity == "" ? 30 : velocity,
-                );
-            }
-        </script>
-    </body>
+    </div>
+    <div id="gameContainer">
+        <canvas id="canvas"></canvas>
+    </div>
+    <script type = "module" src="main.js"></script>
+    
+    <script>
+        // Add floating particles
+        for (let i = 0; i < 300; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 20 + 's';
+            particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+            document.body.appendChild(particle);
+        }
+
+
+    </script>
+
+</body>
 </html>
+
