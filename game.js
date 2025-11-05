@@ -269,7 +269,7 @@ export class Game {
     let tree_value;
     let tree_prev_step = 2;
     for (let i = start_pos-step_val*2; i < canvas.width + this.player.pos.x+step_val*2; i += step_val){
-      tree_increase = biomeData[getBiome(i + this.camera_offset.x)].da*20.0;
+      tree_increase = biomeData[getBiome(i + this.camera_offset.x)].da;
       tree_value = this.tree_perlin.getVal(i/20);
       if (tree_prev_step > 2 && tree_value > (1.0 - PROB_TREE - tree_increase)){
         const idx = Math.floor(this.perlin.getVal(i*200 + 100)*N_DIFFERENT_TREES);
