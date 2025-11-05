@@ -39,7 +39,9 @@ export class Game {
     this.canvas = canvas
     this.particles = new RocketParticleSystem(ctx);
     this.sky = make_sky(ctx, 40);
-    this.player = new Player(10, 1, 25, 50, "#929990", player_weight, INITIAL_FUEL, { y: 160 / player_vel, x: 180 / player_vel });
+
+    const pos_y = getFloorValue(this.perlin, 10.0)-600;
+    this.player = new Player(10, pos_y, 25, 50, "#929990", player_weight, INITIAL_FUEL, { y: 160 / player_vel, x: 180 / player_vel });
     this.boost_time = boost_duration;
 
     for (let i = 0; i < N_DIFFERENT_TREES; i++)
@@ -48,8 +50,6 @@ export class Game {
         70, 
         3 + Math.floor(Math.random()*4), 1.2 + Math.random()/2.0));
 
-    const pos_x = getFloorValue(this.perlin, 0.1);
-    this.player.updatePosition(make_vector2d(0.1, pos_x-400.0));   //move(0, -400);
     this.rover = new Rover({x: 0.0, y: 100});
     this.camera_offset = make_vector2d(-this.player.pos.x + this.canvas.width / 2.0, -this.player.pos.y + this.canvas.height / 2);
   }
@@ -73,7 +73,9 @@ export class Game {
 
     this.particles = new RocketParticleSystem(ctx);
     this.sky = make_sky(ctx, 40);
-    this.player = new Player(10, 1, 25, 50, "#929990", player_weight, INITIAL_FUEL, { y: 160 / player_vel, x: 180 / player_vel });
+
+    const pos_y = getFloorValue(this.perlin, 10.0)-600;
+    this.player = new Player(10, pos_y, 25, 50, "#929990", player_weight, INITIAL_FUEL, { y: 160 / player_vel, x: 180 / player_vel });
     this.boost_time = boost_duration;
 
     for (let i = 0; i < N_DIFFERENT_TREES; i++)
