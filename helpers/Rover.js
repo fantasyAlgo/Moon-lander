@@ -1,5 +1,6 @@
 import { GRAVITY_STRENGTH, ROBOT_FLOOR_DISTANCE } from "../settings.js";
 import { Bullet } from "./Bullet.js";
+import { getFloorDer, getFloorValue } from "./perlin.js";
 import { make_vector2d, vector2dAdd, vector2Distance, vector2dMult, vector2dSub, vector2dNorm, vector2dMultScalar, drawVectorPolygon, rotateVectorShape } from "./Vector2.js";
 
 
@@ -24,7 +25,6 @@ export class Rover {
       make_vector2d(width_rect+10, -height_rect),
       make_vector2d(-10.0, -height_rect),
     ]
-    
     // head (small rectangle with a slant for cuteness)
     this.head = [
       make_vector2d(width_rect-40, -height_rect),
@@ -52,12 +52,12 @@ export class Rover {
     const clamp = (x, minV, maxV) => x < minV ? minV : (x > maxV ? maxV : x)
     this.bodyBase1Vel.y += GRAVITY_STRENGTH;
     this.bodyBase2Vel.y += GRAVITY_STRENGTH;
-    const dy = clamp(perlin.getDer((this.bodyBase2.x) / 200), -1.0, 1.0) ;
+    const dy = clamp(getFloorDer(perlin, this.bodyBase2.x), -1.0, 1.0);
     this.bodyBase2Vel.x += dt*dy*this.dir;
     this.bodyBase2Vel.x = clamp(this.bodyBase2Vel.x, 0.4*this.dir, 0.7*this.dir);
     this.bodyBase2Vel.x *= 0.99;
 
-    let ground_point = perlin.getVal((this.bodyBase1.x) / 200) * 500;
+    let ground_point = getFloorValue(perlin, this.bodyBase1.x);
     let diff = (ground_point - ROBOT_FLOOR_DISTANCE) - this.bodyBase1.y;
     let spring_force = diff * this.SPRING_FORCE - this.bodyBase1Vel.y*this.DAMPING_FORCE;
     spring_force = Math.min(1.0, spring_force*2.0);
@@ -69,7 +69,7 @@ export class Rover {
 
     this.bodyBase1 = vector2dAdd(this.bodyBase1, this.bodyBase1Vel);
 
-    ground_point = perlin.getVal((this.bodyBase2.x) / 200) * 500;
+    ground_point = getFloorValue(perlin, this.bodyBase2.x);
     diff = (ground_point - ROBOT_FLOOR_DISTANCE) - this.bodyBase2.y;
     spring_force = diff * this.SPRING_FORCE - this.bodyBase2Vel.y*this.DAMPING_FORCE;
     spring_force = Math.min(1.0, spring_force);

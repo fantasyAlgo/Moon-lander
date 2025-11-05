@@ -77,7 +77,7 @@ function loadGame(){
     initGame();
     gameContainer.classList.add('active');
   } catch (e) {
-    console.error('Error loading game:', error);
+    console.error('Error loading game:', e);
     progressText.textContent = 'Error loading game';
     loadButton.disabled = false;
   }

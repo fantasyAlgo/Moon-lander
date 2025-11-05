@@ -1,13 +1,14 @@
-import { Simple1DNoise } from "./helpers/perlin.js";
+import { getBiome, getFloorValue, Simple1DNoise } from "./helpers/perlin.js";
 import { Player } from "./helpers/player.js";
 import { RocketParticleSystem } from "./helpers/rocket.js";
 import { make_sky } from "./helpers/sky.js";
 import { make_asteroid } from "./helpers/asteroid.js";
 import { collisionSAT } from "./helpers/collisions.js";
-import { INITIAL_FUEL, MIN_HEIGHT_DUST, N_DIFFERENT_TREES, PROB_TREE, SATResult, SPAWN_ASTEROID_PROB } from "./settings.js";
+import { biomeData, INITIAL_FUEL, MIN_HEIGHT_DUST, N_DIFFERENT_TREES, PROB_TREE, SATResult, SPAWN_ASTEROID_PROB } from "./settings.js";
 import { make_tree } from "./helpers/trees.js";
 import { make_vector2d, vector2Distance } from "./helpers/Vector2.js";
 import { Rover } from "./helpers/Rover.js";
+
 
 
 
@@ -47,7 +48,8 @@ export class Game {
         70, 
         3 + Math.floor(Math.random()*4), 1.2 + Math.random()/2.0));
 
-    this.player.updatePosition(make_vector2d(0.0, -400.0));   //move(0, -400);
+    const pos_x = getFloorValue(this.perlin, 0.1);
+    this.player.updatePosition(make_vector2d(0.1, pos_x-400.0));   //move(0, -400);
     this.rover = new Rover({x: 0.0, y: 100});
     this.camera_offset = make_vector2d(-this.player.pos.x + this.canvas.width / 2.0, -this.player.pos.y + this.canvas.height / 2);
   }
@@ -80,7 +82,8 @@ export class Game {
         70, 
         3 + Math.floor(Math.random()*4), 1.2 + Math.random()/2.0));
 
-    this.player.updatePosition(make_vector2d(0.0, -400.0));   //move(0, -400);
+    const pos_x = getFloorValue(this.perlin, 0.0);
+    this.player.updatePosition(make_vector2d(0.0, pos_x-1200.0));   //move(0, -400);
     this.rover = new Rover({x: 0.0, y: 100});
     this.camera_offset = make_vector2d(-this.player.pos.x + this.canvas.width / 2.0, -this.player.pos.y + this.canvas.height / 2);
   }
@@ -104,15 +107,15 @@ export class Game {
     this.mouse_coord.y = e.clientY;
   }
   generate(){
-    //if (this.asteroids.length != 0) return;
-    if (Math.random() > (1.0 - SPAWN_ASTEROID_PROB)) 
+    const b = getBiome(this.player.pos.x);
+    if (Math.random() > (1.0 - SPAWN_ASTEROID_PROB - biomeData[b].da)) 
       this.asteroids.push(make_asteroid({ x: this.player.pos.x, y: this.player.pos.y }));
   }
   generateAttractPoints(){
     return [
-      this.perlin.getVal(this.player.tShape[1].x / 200) * 500,
-      this.perlin.getVal(this.player.tShape[2].x / 200) * 500,
-      this.perlin.getVal(this.player.tShape[0].x / 200) * 500,
+      getFloorValue(this.perlin, this.player.tShape[1].x),
+      getFloorValue(this.perlin, this.player.tShape[2].x),
+      getFloorValue(this.perlin, this.player.tShape[0].x),
     ];
   }
   initDiedAnimation() {
@@ -242,7 +245,7 @@ export class Game {
     for (let i = start_pos; i < canvas.width + this.player.pos.x; i += 40)
       ctx.lineTo(
         i + this.camera_offset.x,
-        this.perlin.getVal(i / 200) * 500 + this.camera_offset.y,
+        getFloorValue(this.perlin, i) + this.camera_offset.y,
       );
     ctx.lineTo(
       this.canvas.width + (this.player.pos.x > 0 ? this.player.pos.x : this.camera_offset.x),
@@ -259,14 +262,16 @@ export class Game {
 
   drawTrees(ctx){
     const step_val = 28;
+    let tree_increase;
     let start_pos = -Math.floor(this.camera_offset.x / step_val) * step_val - step_val;
     let tree_value;
     let tree_prev_step = 2;
     for (let i = start_pos-step_val*2; i < canvas.width + this.player.pos.x+step_val*2; i += step_val){
+      tree_increase = biomeData[getBiome(i + this.camera_offset.x)].da*20.0;
       tree_value = this.tree_perlin.getVal(i/20);
-      if (tree_prev_step > 2 && tree_value > (1.0 - PROB_TREE)){
+      if (tree_prev_step > 2 && tree_value > (1.0 - PROB_TREE - tree_increase)){
         const idx = Math.floor(this.perlin.getVal(i*200 + 100)*N_DIFFERENT_TREES);
-        const initial_pos = {x : i + this.camera_offset.x, y: this.perlin.getVal(i / 200) * 500 + this.camera_offset.y};
+        const initial_pos = {x : i + this.camera_offset.x, y: getFloorValue(this.perlin, i) + this.camera_offset.y};
         this.trees[idx].draw(ctx, initial_pos, this.camera_offset);
         tree_prev_step = 0;
       }

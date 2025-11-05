@@ -1,3 +1,4 @@
+import { getFloorValue } from "./perlin.js";
 import { Polygon } from "./Polygon.js";
 import { make_vector2d } from "./Vector2.js";
 
@@ -89,7 +90,7 @@ export class Asteroid extends Polygon{
     this.modelBody.forEach((el) => {
       el.x += this.dir.x*dt;
       el.y += this.dir.y*dt;
-      if (perlin.getVal((el.x + this.pos.x) / 200) * 500 <= el.y + this.pos.y)
+      if (getFloorValue(perlin, el.x+this.pos.x) <= el.y + this.pos.y)
         hasCollapsed = true;
     });
     return hasCollapsed;
