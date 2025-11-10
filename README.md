@@ -6,6 +6,17 @@
 This is a simple game made in javascript and canvas with no other libraries. 
 It consist of a little spaceship that needs to land perfectly in a procedurally generated world with a lot of asteroids.
 **The polished version of the game is in the 'asteroid' branch.**
+### Features
+Here is a list of some features present in the game
+- Particle system implementation
+- Convex hull implementation and asteroid generation
+- SAT collision detection for polygon-polygon and polygon-floor collisions
+- Recursive trees generation implementation
+- Biomes
+- Rover implementation using springs and some linear algebra to keep the model attached.
+- Cookie system to keep track of the best score.
+- Bullet system
+
 ### How to run
 **The game is online**, but if you want to run it locally, run:
 ```bash
