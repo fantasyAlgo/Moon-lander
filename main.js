@@ -20,7 +20,6 @@ const progressText = document.getElementById('progressText');
 const landingPage = document.getElementById('landingPage');
 const gameContainer = document.getElementById('gameContainer');
 
-
 function saveInput() {
   var weight = document.getElementById("weight").value;
   var velocity = document.getElementById("velocity").value;
@@ -32,8 +31,6 @@ function saveInput() {
       velocity == "" ? 30 : velocity,
   );
 }
-
-
 
 function animate() {
   const now = performance.now();

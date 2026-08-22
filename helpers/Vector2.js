@@ -18,6 +18,7 @@ export const vector2dMultScalar = (v1, s) => make_vector2d(v1.x * s, v1.y * s);
 export const vector2dSub = (v1, v2) => make_vector2d(v1.x - v2.x, v1.y - v2.y);
 export const vector2dAdd = (v1, v2) => make_vector2d(v1.x + v2.x, v1.y + v2.y);
 export const vector2dNorm = (v1) => v1.distance != 0.0 ? make_vector2d(v1.x / v1.distance, v1.y / v1.distance) : make_vector2d(0.0, 0.0); 
+export const matrix2det = (v1, v2) => v1.x*v2.y - v2.x*v1.y;
 // Calculate the minimum and maximum value of dot product with an axis (v) and each point of (points)
 export const vector2dProjectMinMax = (v, points) => {
   let dottedPoints = [];
@@ -27,16 +28,18 @@ export const vector2dProjectMinMax = (v, points) => {
 };
 
 
-export const drawVectorPolygon = (ctx, pos, points, co) => {
+export const drawVectorPolygon = (ctx, pos, points, co, doesClose=true) => {
   ctx.beginPath();
   ctx.moveTo(points[0].x+pos.x+co.x, points[0].y+pos.y+co.y);
   for (let i = 1; i < points.length; i++) {
     ctx.lineTo(points[i].x+pos.x+co.x, points[i].y+pos.y+co.y);
   }
+  if (!doesClose) ctx.moveTo(points[points.length-1].x+pos.x+co.x, points[points.length-1].y+pos.y+co.y);
   ctx.closePath();
   ctx.strokeStyle = "white";
   ctx.lineWidth = 5;
   ctx.fillStyle = "#121211";
+  if (!doesClose) ctx.fillStyle = "#1c1c1b";
 
   ctx.stroke();
   ctx.fill();

@@ -25,7 +25,7 @@ export class Polygon {
       shape.push(vector2dAdd(usedShape[i], this.pos))
     return shape
   }
-  draw(ctx, co){
-    drawVectorPolygon(ctx, this.pos, rotateVectorShape(this.modelBody, this.center, this.rot), co);
+  draw(ctx, co, doesClose=true){
+    drawVectorPolygon(ctx, this.pos, rotateVectorShape(this.modelBody, this.center, this.rot), co, doesClose);
   }
 };

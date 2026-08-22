@@ -4,12 +4,11 @@ import { RocketParticleSystem } from "./helpers/rocket.js";
 import { make_sky } from "./helpers/sky.js";
 import { make_asteroid } from "./helpers/asteroid.js";
 import { collisionSAT } from "./helpers/collisions.js";
-import { biomeData, INITIAL_FUEL, MIN_HEIGHT_DUST, N_DIFFERENT_TREES, PROB_TREE, SATResult, SPAWN_ASTEROID_PROB } from "./settings.js";
+import { BASIC_ANKOR_DISTANCE, biomeData, INITIAL_FUEL, MIN_HEIGHT_DUST, N_DIFFERENT_TREES, PROB_TREE, SATResult, SPAWN_ASTEROID_PROB } from "./settings.js";
 import { make_tree } from "./helpers/trees.js";
 import { make_vector2d, vector2Distance } from "./helpers/Vector2.js";
 import { Rover } from "./helpers/Rover.js";
-
-
+import { Ankor } from "./helpers/Ankor.js";
 
 
 export class Game {
@@ -32,9 +31,13 @@ export class Game {
   pageNeeded = 0;
   total_time = 0.0;
   width = 0.0;
+  stop = false;
+  points = 0;
 
   constructor(canvas, ctx, player_weight, boost_duration, player_vel){
     this.width = canvas.width;
+    this.stop = false;
+    this.points = 0;
 
     this.canvas = canvas
     this.particles = new RocketParticleSystem(ctx);
@@ -52,10 +55,13 @@ export class Game {
 
     this.rover = new Rover({x: 0.0, y: 100});
     this.camera_offset = make_vector2d(-this.player.pos.x + this.canvas.width / 2.0, -this.player.pos.y + this.canvas.height / 2);
+    this.ankor = new Ankor(0, BASIC_ANKOR_DISTANCE, this.perlin);
   }
 
   reset(ctx, player_weight, boost_duration, player_vel){
+    this.ankor = new Ankor(0, BASIC_ANKOR_DISTANCE, this.perlin);
     this.camera_offset = { x: 0, y: 0 };
+    this.points = 0;
     this.goUp = false;
     this.xRotation = 0;
     this.attractPoint = [0, 0];
@@ -94,6 +100,9 @@ export class Game {
   handleKeyDown(e){
     if ((e.key == "w" || this.player.goUp) && this.player.fuel > 0) this.player.goUp = true;
     if (e.key == "Shift" && this.boost_time > 0) this.is_boosting = true;
+    if (e.key == "o") this.stop = true;
+    if (e.key == "p") this.stop = false;
+
   }
   handleKeyUp(e){
     if (e.key === "ArrowRight" || e.key === "ArrowLeft") this.xRotation = 0;
@@ -144,12 +153,8 @@ export class Game {
       return true;
     };
     if (this.player.checkFloorCollision(attractPoint)){
-      if (this.player.isInRightPosition(attractPoint)){
-        this.pageNeeded = 1 // Tells the bro to go to the winning html page
-      }else if (!this.dead) {
-        this.initDiedAnimation();
-        this.pageNeeded = 2 // Dying animation
-      }
+      this.initDiedAnimation();
+      this.pageNeeded = 2;
       return true;
     }
     return false 
@@ -206,6 +211,7 @@ export class Game {
   update(dt=1){
     this.total_time += dt;
     const mouse_dir = make_vector2d(-this.mouse_coord.x + this.canvas.width / 2.0, -this.mouse_coord.y + this.canvas.height / 2);
+    if (this.stop) return;
 
     const collision_indx = this.rover.update(this.perlin, this.asteroids, dt);
     if (collision_indx >= 0){
@@ -213,11 +219,27 @@ export class Game {
       this.asteroids.splice(collision_indx, 1);
     }
 
+
     let attractPoint = this.generateAttractPoints();
     if (this.checkFloorCollision(attractPoint)){
       this.updateIfDead(dt);
       return true;
     };
+
+    const ankorCollision = this.ankor.checkPlayerCollision(this.player);
+    if (ankorCollision != -1){
+      console.log(ankorCollision);
+      if (ankorCollision != 1 || !this.player.isInRightPosition() ){
+        this.initDiedAnimation();
+        this.dead = true;
+        return true;
+        this.pageNeeded = 2;
+      }else{
+        this.ankor = new Ankor(this.player.pos.x, BASIC_ANKOR_DISTANCE, this.perlin);
+        this.points += 1;
+      }
+    }
+
 
 
     this.player.update(dt, mouse_dir, (this.is_boosting && this.boost_time > 0 ? 4.0 : 1.0));
@@ -228,7 +250,6 @@ export class Game {
     if (this.boost_time < -10) this.boost_time = -10;
     if (this.boost_time > this.boost_duration) this.boost_time = this.boost_duration;
 
-    //console.log(is_boosting, boost_time);
     if (this.player.goUp && this.player.fuel > 0) {
       this.player.generateParticles(this.particles, this.is_boosting, this.boost_time, 100.0/dt);
       this.generateDustParticles(attractPoint);
@@ -295,6 +316,7 @@ export class Game {
       10,
       60,
     );
+    ctx.fillText("Points " + this.points, 10, 90);
 
     let attractPoint = this.generateAttractPoints();
     if (attractPoint[1] - (this.player.tShape[1].y + this.camera_offset.y) < MIN_HEIGHT_DUST*2) {
@@ -303,6 +325,10 @@ export class Game {
       ctx.fillText("align left: " + -Math.floor(alignP1*100.0)/100.0, this.canvas.width-200, 30);
       ctx.fillText("align right: " + -Math.floor(alignP2*100.0)/100.0, this.canvas.width-200, 60);
     }
+    ctx.font = "45px Arial";
+    const sign = this.player.pos.x - this.ankor.x;
+    if (sign < 0) ctx.fillText(">", this.canvas.width-30, this.canvas.height/2.0);
+    else ctx.fillText("<", 30, this.canvas.height/2.0);
 
   }
 
@@ -317,6 +343,7 @@ export class Game {
     }
 
     this.sky.draw(this.camera_offset);
+    this.ankor.draw(ctx, this.camera_offset);
     if (!this.dead)
       this.player.draw(ctx, this.camera_offset);
     this.particles.draw(this.camera_offset);
@@ -327,7 +354,5 @@ export class Game {
     this.drawTerrain(ctx);
     this.rover.Draw(ctx, this.camera_offset);
   }
-
-
 
 }

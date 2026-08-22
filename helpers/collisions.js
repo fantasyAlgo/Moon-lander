@@ -1,5 +1,5 @@
 import { SATResult } from "../settings.js";
-import { make_vector2d, vector2dProjectMinMax,  vector2dSub, vector2dNorm} from "./Vector2.js";
+import { make_vector2d, vector2dProjectMinMax,  vector2dSub, vector2dNorm, vector2dAdd, vector2dMult, vector2dMultScalar, matrix2det} from "./Vector2.js";
 
 function isConvexPoint(points) {
   const v1 = vector2dSub(points[1], points[0]);
@@ -130,4 +130,54 @@ export function collisionSAT(pol1, pol2) {
   }
   return overlapFinalValue;
 }
+
+
+export function lineCollision(l1, l2){
+  //console.log(l1, l2);
+  const v1 = vector2dSub(l1[1], l1[0]);
+  const v2 = vector2dMultScalar(vector2dSub(l2[1], l2[0]), -1.0);
+  const B = vector2dSub(l2[0], l1[0]);
+  const d = matrix2det(v1, v2); 
+  //console.log("det: ", v1, v2, B, d);
+  const d1 = matrix2det(B, v2);
+  const d2 =  matrix2det(v1, B);
+  if (d == 0){
+    return false;
+  }
+  const t = make_vector2d(d1/d, d2/d);
+  const existL1 = t.x >= 0 && t.x <= 1.0;
+  const existL2 = t.y >= 0 && t.y <= 1.0;
+  return existL1 && existL2;
+}
+
+
+/*export function lineCollision(l1, l2){
+  const v1 = vector2dSub(l1[1], l1[0]);
+  const v2 = vector2dSub(l2[1], l2[0]);
+  const v1N = vector2dNorm(v1);
+  const dots = [
+    v1.dot( vector2dSub(l2[0], l1[0])), 
+    v1.dot(vector2dSub(l2[1], l1[0])),
+    v2.dot( vector2dSub(l1[0], l2[0])), 
+    v2.dot(vector2dSub(l1[1], l2[0])),
+  ];
+  let goodDots = [];
+  if (dots[0] >= 0 || dots[0] <= v1.distance)
+    goodDots.push(0);
+
+  const l = [v1.dot( vector2dSub(l2[0], l1[0])), v1.dot(vector2dSub(l2[1], l1[0]))];
+
+  const l3 = [
+    vector2dAdd(l2[0], vector2dMult(v2, l[0])),
+    vector2dAdd(l2[0], vector2dMult(v2, l[1]))
+  ]
+
+}*/
+
+
+
+
+
+
+
 

@@ -66,11 +66,10 @@ export class Player extends Polygon {
 
 
 
-  isInRightPosition(attractPoint){
-    return  Math.abs(this.force.y) <= MAX_IMPACT_VEL && 
-            sameInInterval(this.tShape[1].y, attractPoint[0], MIN_ALIGNMENT) && 
-            sameInInterval(this.tShape[2].y, attractPoint[1], MIN_ALIGNMENT);
+  isInRightPosition(){
+    return Math.abs(this.force.y) <= MAX_IMPACT_VEL && Math.abs(this.rot) < 1.0;
   }
+
   checkFloorCollision(attractPoint){
     return this.tShape[1].y > attractPoint[0] ||
            this.tShape[2].y > attractPoint[1] ||

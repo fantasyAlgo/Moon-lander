@@ -55,6 +55,8 @@ export const ROBOT_FLOOR_DISTANCE = 10;
 export const N_BIOMES = 20;
 export const DIST_BIOME = 4000;
 export const INTERSECTION_PERIOD = 500;
+export const SIZE_ANKOR = 80;
+export const BASIC_ANKOR_DISTANCE = 1000; 
 
 
 
