@@ -28,7 +28,7 @@ export const vector2dProjectMinMax = (v, points) => {
 };
 
 
-export const drawVectorPolygon = (ctx, pos, points, co, doesClose=true) => {
+export const drawVectorPolygon = (ctx, pos, points, co, doesClose=true, color = "white") => {
   ctx.beginPath();
   ctx.moveTo(points[0].x+pos.x+co.x, points[0].y+pos.y+co.y);
   for (let i = 1; i < points.length; i++) {
@@ -36,7 +36,7 @@ export const drawVectorPolygon = (ctx, pos, points, co, doesClose=true) => {
   }
   if (!doesClose) ctx.moveTo(points[points.length-1].x+pos.x+co.x, points[points.length-1].y+pos.y+co.y);
   ctx.closePath();
-  ctx.strokeStyle = "white";
+  ctx.strokeStyle = color;
   ctx.lineWidth = 5;
   ctx.fillStyle = "#121211";
   if (!doesClose) ctx.fillStyle = "#1c1c1b";

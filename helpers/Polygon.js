@@ -7,6 +7,7 @@ export class Polygon {
     this.modelBody = modelBody;
     this.center = this.getCenter();
     this.pos = pos;
+    this.color = "white";
   }
   getCenter(){
     let v = make_vector2d(0.0, 0.0);
@@ -26,6 +27,6 @@ export class Polygon {
     return shape
   }
   draw(ctx, co, doesClose=true){
-    drawVectorPolygon(ctx, this.pos, rotateVectorShape(this.modelBody, this.center, this.rot), co, doesClose);
+    drawVectorPolygon(ctx, this.pos, rotateVectorShape(this.modelBody, this.center, this.rot), co, doesClose, this.color);
   }
 };

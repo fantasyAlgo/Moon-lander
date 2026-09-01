@@ -6,8 +6,8 @@ export function setData(){
   let levels = [];
   console.log(diff)
   if (diff == "easy") levels = [0.001, 0.5, 5.0, 10000000000, 600, 0.07];
-  if (diff == "medium") levels = [0.005, 0.30, 4.0, 5318008, 300, 0.07];
-  if (diff == "hard") levels = [0.01, 0.2, 2.0, 8008, 200, 0.05];
+  if (diff == "medium") levels = [0.005, 0.30, 4.0, 2000, 300, 0.07];
+  if (diff == "hard") levels = [0.01, 0.30, 2.0, 1000, 200, 0.05];
 
   SPAWN_ASTEROID_PROB = levels[0];
   MAX_IMPACT_VEL = levels[1];
@@ -55,8 +55,9 @@ export const ROBOT_FLOOR_DISTANCE = 10;
 export const N_BIOMES = 20;
 export const DIST_BIOME = 4000;
 export const INTERSECTION_PERIOD = 500;
-export const SIZE_ANKOR = 80;
+export const SIZE_ANKOR = 100;
 export const BASIC_ANKOR_DISTANCE = 1000; 
+export const ANKOR_DIST_MULTIPLIER = 1000;
 
 
 

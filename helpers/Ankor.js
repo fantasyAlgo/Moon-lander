@@ -28,6 +28,17 @@ export class Ankor {
     this.lPolygon = new Polygon(make_vector2d(this.x, this.y), lower);
     this.uPolygon = new Polygon(make_vector2d(this.x, this.y), upper);
    }
+  changePos(pos){
+    this.x = pos.x;
+    this.y = pos.y;
+    this.lPolygon.pos = pos;
+    this.uPolygon.pos = pos;
+  }
+  setFakeColor(new_color){
+    console.log("iopjerygtgresdiop");
+    this.lPolygon.color = new_color;
+    this.uPolygon.color = new_color;
+  }
   checkPlayerCollision(player){ // Basically returns the line (if one) that the player insect with the up Ankor
     const uPShape = this.uPolygon.getShape(); 
     const pShape = player.getShape();

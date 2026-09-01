@@ -4,7 +4,7 @@ import { RocketParticleSystem } from "./helpers/rocket.js";
 import { make_sky } from "./helpers/sky.js";
 import { make_asteroid } from "./helpers/asteroid.js";
 import { collisionSAT } from "./helpers/collisions.js";
-import { BASIC_ANKOR_DISTANCE, biomeData, INITIAL_FUEL, MIN_HEIGHT_DUST, N_DIFFERENT_TREES, PROB_TREE, SATResult, SPAWN_ASTEROID_PROB } from "./settings.js";
+import { ANKOR_DIST_MULTIPLIER, BASIC_ANKOR_DISTANCE, biomeData, INITIAL_FUEL, MIN_HEIGHT_DUST, N_DIFFERENT_TREES, PROB_TREE, SATResult, SPAWN_ASTEROID_PROB } from "./settings.js";
 import { make_tree } from "./helpers/trees.js";
 import { make_vector2d, vector2Distance } from "./helpers/Vector2.js";
 import { Rover } from "./helpers/Rover.js";
@@ -38,6 +38,7 @@ export class Game {
     this.width = canvas.width;
     this.stop = false;
     this.points = 0;
+    this.ankor_dist = 0;
 
     this.canvas = canvas
     this.particles = new RocketParticleSystem(ctx);
@@ -56,10 +57,17 @@ export class Game {
     this.rover = new Rover({x: 0.0, y: 100});
     this.camera_offset = make_vector2d(-this.player.pos.x + this.canvas.width / 2.0, -this.player.pos.y + this.canvas.height / 2);
     this.ankor = new Ankor(0, BASIC_ANKOR_DISTANCE, this.perlin);
+    this.fake_ankor = new Ankor(0, 100000000000, this.perlin);
+    this.fake_ankor.setFakeColor("#8E8E8D");
+    this.fake_ankor.changePos(make_vector2d(this.ankor.x, this.ankor.y));
+
+
   }
 
   reset(ctx, player_weight, boost_duration, player_vel){
     this.ankor = new Ankor(0, BASIC_ANKOR_DISTANCE, this.perlin);
+    this.ankor_dist = 0;
+
     this.camera_offset = { x: 0, y: 0 };
     this.points = 0;
     this.goUp = false;
@@ -91,8 +99,13 @@ export class Game {
         3 + Math.floor(Math.random()*4), 1.2 + Math.random()/2.0));
 
     const pos_x = getFloorValue(this.perlin, 0.0);
-    this.player.updatePosition(make_vector2d(0.0, pos_x-1200.0));   //move(0, -400);
+    this.player.updatePosition(make_vector2d(0.0, pos_x-1200.0));   //mov100e(0, -400);
     this.rover = new Rover({x: 0.0, y: 100});
+
+    this.ankor = new Ankor(0, BASIC_ANKOR_DISTANCE, this.perlin);
+    this.fake_ankor = new Ankor(0, 100000000000, this.perlin);
+    this.fake_ankor.setFakeColor("#8E8E8D");
+
     this.camera_offset = make_vector2d(-this.player.pos.x + this.canvas.width / 2.0, -this.player.pos.y + this.canvas.height / 2);
   }
 
@@ -235,18 +248,21 @@ export class Game {
         return true;
         this.pageNeeded = 2;
       }else{
-        this.ankor = new Ankor(this.player.pos.x, BASIC_ANKOR_DISTANCE, this.perlin);
+        this.ankor_dist += ANKOR_DIST_MULTIPLIER;
+        this.fake_ankor.changePos(make_vector2d(this.ankor.x, this.ankor.y));
+        this.ankor = new Ankor(this.player.pos.x, BASIC_ANKOR_DISTANCE + this.ankor_dist, this.perlin);
         this.points += 1;
+        this.player.fuel += INITIAL_FUEL*(this.points+1);
       }
     }
 
 
-
-    this.player.update(dt, mouse_dir, (this.is_boosting && this.boost_time > 0 ? 4.0 : 1.0));
+    this.player.update(dt, mouse_dir, this.is_boosting && this.boost_time > 0);
     this.particles.update(dt);
     this.updateAsteroids(dt);
 
-    this.boost_time += dt * (this.is_boosting ? -1 : 0.1);
+
+    this.boost_time += dt * (this.is_boosting ? -0.5 : 0.1);
     if (this.boost_time < -10) this.boost_time = -10;
     if (this.boost_time > this.boost_duration) this.boost_time = this.boost_duration;
 
@@ -310,7 +326,7 @@ export class Game {
     ctx.fillText("" + Math.floor(this.total_time*100)/10000.0, this.width/2.0-this.width/32, 40);
     if (this.died) return
     ctx.font = "20px Arial";
-    ctx.fillText("Fuel: " + this.player.fuel, 10, 30);
+    ctx.fillText("Fuel: " + Math.floor(100.0*this.player.fuel)/100, 10, 30);
     ctx.fillText(
       "Y-velocity: " + -Math.floor(this.player.force.y * 100) / 100,
       10,
@@ -343,7 +359,9 @@ export class Game {
     }
 
     this.sky.draw(this.camera_offset);
+    this.fake_ankor.draw(ctx, this.camera_offset);
     this.ankor.draw(ctx, this.camera_offset);
+
     if (!this.dead)
       this.player.draw(ctx, this.camera_offset);
     this.particles.draw(this.camera_offset);

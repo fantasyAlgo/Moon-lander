@@ -48,11 +48,13 @@ export class Player extends Polygon {
   updateForward(dt, increment = 1.0){
     this.force.x += (Math.sin(this.rot) / this.player_gas.x) * increment * dt;
     this.force.y -= (Math.cos(this.rot) / this.player_gas.y) * increment * dt;
-    this.fuel -= 1;
+    this.fuel -= increment*dt;
     this.goUp = true;
   }
 
-  update(dt=1, mouse_dir, acc) {
+  update(dt=1, mouse_dir, is_boosting) {
+    const acc = is_boosting ? 4.0 : 1.0;
+
     if (this.goUp)
       this.updateForward(dt, acc);
     this.rotate_with(mouse_dir);
