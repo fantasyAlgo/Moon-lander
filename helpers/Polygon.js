@@ -8,6 +8,7 @@ export class Polygon {
     this.center = this.getCenter();
     this.pos = pos;
     this.color = "white";
+    this.fillColor = "#121211";
   }
   getCenter(){
     let v = make_vector2d(0.0, 0.0);
@@ -18,6 +19,7 @@ export class Polygon {
     v = vector2dAdd(v, this.pos);
     return v;
   }
+
   getShape(){
     const l = this.modelBody.length;
     let usedShape = rotateVectorShape(this.modelBody, this.center, this.rot)
@@ -26,7 +28,8 @@ export class Polygon {
       shape.push(vector2dAdd(usedShape[i], this.pos))
     return shape
   }
+
   draw(ctx, co, doesClose=true){
-    drawVectorPolygon(ctx, this.pos, rotateVectorShape(this.modelBody, this.center, this.rot), co, doesClose, this.color);
+    drawVectorPolygon(ctx, this.pos, rotateVectorShape(this.modelBody, this.center, this.rot), co, doesClose, this.color, this.fillColor);
   }
 };

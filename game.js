@@ -207,13 +207,7 @@ export class Game {
           this.initDiedAnimation()
         }
       }
-      //console.log(asteroid_shape)
-      const ast_speed = 0.5;
-      sizeAsteroid = (center.x - asteroid_shape[0].x)*(center.x - asteroid_shape[0].x) + (center.y - asteroid_shape[0].y)*(center.y - asteroid_shape[0].y);
-
-      this.particles.emit({x: center.x, y: center.y } ,
-        { x: -asteroid.dir.x*ast_speed, y: -asteroid.dir.y*ast_speed }, "#916846", 
-        { x: -asteroid.dir.x*ast_speed, y: -asteroid.dir.y*ast_speed }, sizeAsteroid/600.0, sizeAsteroid/300);
+      asteroid.updateParticles(this.particles);
       if ( asteroid.update(this.perlin, this.particles, dt) ){
         asteroid.emitDeathParticles(this.particles);
         this.asteroids.splice(this.asteroids.indexOf(asteroid), 1);

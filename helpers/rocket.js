@@ -7,11 +7,13 @@ export class RocketParticleSystem {
     this.ctx = ctx;
     this.active_particles = [];
   }
-  emit(start_pos, vel, color = "#916846", end_vel = null, avr_size = 1, pos_var = 5) {
+  emit(start_pos, vel, color = "#916846", end_vel = null, avr_size = 1, pos_var = 5, particle_life_decrease = 0.01) {
     const start_time = 1 + (Math.random() * 2 - 1) / 10;
+    const lDecrease = particle_life_decrease;
     this.active_particles.push({
       start_time: start_time,
       time_rem: start_time,
+      life_decrease : lDecrease,
       pos: {x: start_pos.x + pos_var*(Math.random()-0.5), y: start_pos.y + pos_var*(Math.random()-0.5)} ,
       vel: {
         x: vel.x + (Math.random() * 2 - 1) / 2,
@@ -35,7 +37,8 @@ export class RocketParticleSystem {
     for (let i = 0; i < length; i++) {
       const particle = this.active_particles[i];
       if (this.active_particles[i].time_rem < 0) {
-        this.active_particles.shift();
+        //this.active_particles.shift();
+        this.active_particles.splice(i, 1);
         i -= 1;
         length -= 1;
         continue;
@@ -55,9 +58,10 @@ export class RocketParticleSystem {
               ),
             }
           : {x: particle.vel.x, y: particle.vel.y} ;
+      const time_rem = particle.time_rem - particle.life_decrease*dt;
       this.active_particles[i].pos.x += curr_vel.x*dt;
       this.active_particles[i].pos.y += curr_vel.y*dt;
-      this.active_particles[i].time_rem -= 0.01*dt;
+      this.active_particles[i].time_rem -= particle.life_decrease*dt;
     }
   }
   draw(camera_offset) {

@@ -91,6 +91,8 @@ export class Player extends Polygon {
         is_boosting && boost_time > 0 ? "#cc9e78" : "#916846",
         { x: -this.force.x, y: -this.force.y },
         is_boosting && boost_time > 0 ? 2.3 : 1.0,
+        5,
+        0.01,
       );
      
     }
