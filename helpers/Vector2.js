@@ -9,6 +9,7 @@ export const make_vector2d = (x, y) => {
 };
 
 
+
 export const vector2Distance = (v1, v2) => {
   const sqr = (v1.x - v2.x)*(v1.x - v2.x) + (v1.y - v2.y)*(v1.y - v2.y);
   return Math.sqrt(sqr);
@@ -60,4 +61,17 @@ export const rotateVectorShape = (shape, center, angle) => {
   return final_shape;
 
 }
+
+
+export const VecToAngle = (v) => {
+  const vN = vector2dNorm(v);
+  return Math.atan2(vN.y, vN.x);
+}
+
+export const AngleToVec = (a) => {
+  return make_vector2d(Math.cos(a), Math.sin(a));
+}
+
+
+
 

@@ -1,3 +1,4 @@
+import { ASTEROID_SPEED, METEOR_SPEED } from "../settings.js";
 import { getFloorValue } from "./perlin.js";
 import { Polygon } from "./Polygon.js";
 import { make_vector2d, vector2dMultScalar, vector2dNorm } from "./Vector2.js";
@@ -60,11 +61,16 @@ function convex_hull(points){
 
 
 export class FallingBody extends Polygon{
-  constructor(pos, modelBody, internal_color, particles_color, strength){
+  constructor(pos, modelBody, internal_color, particles_color, strength, ast_speed){
     super(pos, modelBody);
     this.internal_color = internal_color;
     this.fillColor = internal_color;
     this.particles_color = particles_color;
+
+    const asteroid_shape = this.getShape();
+    this.center = this.getCenter(); 
+    this.sizeAsteroid = (this.center.x - asteroid_shape[0].x)*(this.center.x - asteroid_shape[0].x) + (this.center.y - asteroid_shape[0].y)*(this.center.y - asteroid_shape[0].y);
+    this.speed = ast_speed;
   }
 
   update(perlin, particles, dt=1){
@@ -79,22 +85,15 @@ export class FallingBody extends Polygon{
   }
 
   updateParticles(particles){
-    const asteroid_shape = this.getShape();
-    let center = this.getCenter(); 
-    const ast_speed = 0.5;
-    const sizeAsteroid = (center.x - asteroid_shape[0].x)*(center.x - asteroid_shape[0].x) + (center.y - asteroid_shape[0].y)*(center.y - asteroid_shape[0].y);
-    
+    const center = this.getCenter(); 
     particles.emit({x: center.x, y: center.y } ,
-      { x: -this.dir.x*ast_speed, y: -this.dir.y*ast_speed }, this.particles_color, 
-      { x: -this.dir.x*ast_speed, y: -this.dir.y*ast_speed }, sizeAsteroid/600.0, sizeAsteroid/300, 0.008)
+      make_vector2d(-this.dir.x*this.speed, -this.dir.y*this.speed), this.particles_color, 
+      make_vector2d(-this.dir.x*this.speed, -this.dir.y*this.speed), this.sizeAsteroid/600.0, this.sizeAsteroid/200, 0.008)
   }
 
 
   emitDeathParticles(particles){
-    const shape = this.getShape();
-    let center = this.getCenter();
-    const sizeAsteroid = (center.x - shape[0].x)*(center.x - shape[0].x) + (center.y - shape[0].y)*(center.y - shape[0].y);
-
+    const center = this.getCenter(); 
     for (let i = 0; i < 100; i++) {
       const vel = { x: Math.random() * 2 - 1, y: Math.random() * 2 - 1 };
       particles.emit(
@@ -103,7 +102,7 @@ export class FallingBody extends Polygon{
           y: center.y,
         },
         vel,
-        i % 2 == 0 ? "#fafaff" : "#929990", {x: vel.x, y: vel.y}, sizeAsteroid/700.0
+        i % 2 == 0 ? "#fafaff" : "#929990", null, this.sizeAsteroid/500.0
       );
     }
   }
@@ -134,7 +133,7 @@ export class Asteroid extends FallingBody{
     points = convex_hull(points);
     const pos = make_vector2d(player_pos.x + generate_number(-canvas.width / 2, canvas.width / 2), player_pos.y - canvas.height * 1);
 
-    super(pos, points, "#121211", "#916846", 1.0);
+    super(pos, points, "#121211", "#916846", 1.0, ASTEROID_SPEED);
 
     this.dir = make_vector2d( generate_number(-5, 5), generate_number(1, 5))
   }
@@ -164,20 +163,30 @@ export class Meteor extends FallingBody {
 
     points = convex_hull(points);
     const pos = make_vector2d(player_pos.x + generate_number(-canvas.width / 2, canvas.width / 2), player_pos.y - canvas.height * 1);
-    super(pos, points, "#ffffff", "#ffffff", 2.0);
+    super(pos, points, "#ffffff", "#ffffff", 2.0, METEOR_SPEED);
 
     this.dir = vector2dMultScalar(vector2dNorm(make_vector2d( generate_number(-10, 10), generate_number(1, 10))), 4.0);
 
   }
   updateParticles(particles){
-    const asteroid_shape = this.getShape();
-    let center = this.getCenter(); 
-    const ast_speed = 0.5;
-    const sizeAsteroid = (center.x - asteroid_shape[0].x)*(center.x - asteroid_shape[0].x) + (center.y - asteroid_shape[0].y)*(center.y - asteroid_shape[0].y);
-    
+    const center = this.getCenter(); 
     particles.emit({x: center.x, y: center.y } ,
-      { x: -this.dir.x*ast_speed, y: -this.dir.y*ast_speed }, this.particles_color, 
-      { x: -this.dir.x*ast_speed, y: -this.dir.y*ast_speed }, sizeAsteroid/100.0, sizeAsteroid/50, 0.0003)
+      make_vector2d(-this.dir.x*this.speed, -this.dir.y*this.speed), this.particles_color, 
+      null, this.sizeAsteroid/200.0, this.sizeAsteroid/100, 0.003, 1.5)
+  }
+  emitDeathParticles(particles){
+    const center = this.getCenter(); 
+    for (let i = 0; i < 100; i++) {
+      const vel = { x: Math.random() * 2 - 1, y: Math.random() * 2 - 1 };
+      particles.emit(
+        {
+          x: center.x,
+          y: center.y,
+        },
+        vel,
+        i % 2 == 0 ? "#fafaff" : "#929990", {x: vel.x, y: vel.y}, this.sizeAsteroid/100,
+      );
+    }
   }
 }
 
@@ -186,7 +195,7 @@ export class Meteor extends FallingBody {
 
 
 export function make_asteroid(player_pos) {
-  if (Math.random() < 0.95)
+  if (Math.random() < 0.9)
     return new Asteroid(player_pos);
   return new Meteor(player_pos);
 }

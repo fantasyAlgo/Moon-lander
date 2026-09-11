@@ -78,21 +78,24 @@ export class Player extends Polygon {
            this.tShape[0].y > attractPoint[2];
   }
   generateParticles(pSystem, is_boosting, boost_time, frame ){
-    let nParticles = 1;
+    let nParticles = 1 + (Math.random() > 0.5);
+    console.log(frame)
     if (frame < 60) nParticles = 2;
-    if (frame < 30) nParticles = 3;
+    if (frame < 30) nParticles = 3; 
+    const isBoostOn = is_boosting && boost_time > 0;
     for (let _ = 0; _ < nParticles; _++) {
       pSystem.emit(
         {
           x: this.tShape[3].x,
           y: this.tShape[3].y
         },
-        { x: -Math.sin(this.rot), y: Math.cos(this.rot) },
+        make_vector2d(-Math.sin(this.rot), Math.cos(this.rot)),
         is_boosting && boost_time > 0 ? "#cc9e78" : "#916846",
         { x: -this.force.x, y: -this.force.y },
-        is_boosting && boost_time > 0 ? 2.3 : 1.0,
-        5,
+        isBoostOn ? 3.0 : 1.6,
+        isBoostOn ? 5 : 2,
         0.01,
+        isBoostOn ? 1.2 : 1.0
       );
      
     }

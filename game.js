@@ -55,6 +55,7 @@ export class Game {
         3 + Math.floor(Math.random()*4), 1.2 + Math.random()/2.0));
 
     this.rover = new Rover({x: 0.0, y: 100});
+
     this.camera_offset = make_vector2d(-this.player.pos.x + this.canvas.width / 2.0, -this.player.pos.y + this.canvas.height / 2);
     this.ankor = new Ankor(0, BASIC_ANKOR_DISTANCE, this.perlin);
     this.fake_ankor = new Ankor(0, 100000000000, this.perlin);
@@ -130,6 +131,7 @@ export class Game {
     this.mouse_coord.x = e.clientX;
     this.mouse_coord.y = e.clientY;
   }
+
   generate(){
     const b = getBiome(this.player.pos.x);
     if (Math.random() > (1.0 - SPAWN_ASTEROID_PROB - biomeData[b].da)) 
@@ -143,14 +145,16 @@ export class Game {
     ];
   }
   initDiedAnimation() {
+    console.log("okpteko");
     for (let i = 0; i < this.player_particles; i++) {
       this.particles.emit(
-        {
-          x: this.player.tShape[3].x ,
-          y: this.player.tShape[3].y ,
-        },
-        { x: Math.random() * 2 - 1, y: Math.random() * 2 - 1 },
+         make_vector2d(this.player.tShape[3].x, this.player.tShape[3].y),
+        make_vector2d( Math.random() * 2 - 1, Math.random() * 2 - 1 ),
         i % 2 == 0 ? "#916846" : "#929990",
+        null,
+        3, 
+        10, 0.01
+
       );
     }
     this.dead = true;

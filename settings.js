@@ -42,6 +42,7 @@ export let  MIN_ALIGNMENT = 0.0;
 export let  INITIAL_FUEL = 0.0;
 export let biomeData = [];
 export let PROB_TREE = 0.00;
+
 /////////////////////////////
 
 
@@ -59,6 +60,8 @@ export const SIZE_ANKOR = 100;
 export const BASIC_ANKOR_DISTANCE = 1000; 
 export const ANKOR_DIST_MULTIPLIER = 1000;
 
+export const ASTEROID_SPEED = 0.5;
+export const METEOR_SPEED = 0.5;
 
 
 

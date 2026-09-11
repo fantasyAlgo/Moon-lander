@@ -1,3 +1,5 @@
+import {AngleToVec, VecToAngle, vector2dMultScalar, vector2dNorm } from "./Vector2.js";
+
 let clamp = (num, min, max) => Math.min(Math.max(num, min), max);
 let lerp = (n1, n2, t) => n1 + (n2 - n1) * t;
 let sameInInterval = (a, b, interval) => Math.abs(a - b) < interval;
@@ -7,17 +9,22 @@ export class RocketParticleSystem {
     this.ctx = ctx;
     this.active_particles = [];
   }
-  emit(start_pos, vel, color = "#916846", end_vel = null, avr_size = 1, pos_var = 5, particle_life_decrease = 0.01) {
+  emit(start_pos, vel, color = "#916846", end_vel = null, avr_size = 1, pos_var = 5, particle_life_decrease = 0.01, vel_var = 0.5) {
     const start_time = 1 + (Math.random() * 2 - 1) / 10;
     const lDecrease = particle_life_decrease;
+    const randomized_vel = vector2dMultScalar(AngleToVec(VecToAngle(vel) + vel_var * (Math.random()*2 - 1) ), vel.distance);
+    //console.log(randomized_vel, vel);
+    //const randomized_end_vel = vector2dMultScalar(AngleToVec(VecToAngle(end_vel) + vel_var * (Math.random()*2 - 1) ), end_vel.distance);
+
+
     this.active_particles.push({
       start_time: start_time,
       time_rem: start_time,
       life_decrease : lDecrease,
       pos: {x: start_pos.x + pos_var*(Math.random()-0.5), y: start_pos.y + pos_var*(Math.random()-0.5)} ,
       vel: {
-        x: vel.x + (Math.random() * 2 - 1) / 2,
-        y: vel.y + (Math.random() * 2 - 1) / 10,
+        x: randomized_vel.x, //vel.x + (Math.random() * 2 - 1) / 2,
+        y: randomized_vel.y //vel.y + (Math.random() * 2 - 1) / 10,
       },
       size: (Math.random() * 4 + 1) * avr_size,
       color: color,
@@ -36,7 +43,7 @@ export class RocketParticleSystem {
     //let particle;
     for (let i = 0; i < length; i++) {
       const particle = this.active_particles[i];
-      if (this.active_particles[i].time_rem < 0) {
+      if (this.active_particles[i].time_rem <= 0) {
         //this.active_particles.shift();
         this.active_particles.splice(i, 1);
         i -= 1;
@@ -63,6 +70,7 @@ export class RocketParticleSystem {
       this.active_particles[i].pos.y += curr_vel.y*dt;
       this.active_particles[i].time_rem -= particle.life_decrease*dt;
     }
+    this.active_particles.filter((p) => p.time_rem > 0);
   }
   draw(camera_offset) {
     let length = this.active_particles.length;
@@ -70,6 +78,7 @@ export class RocketParticleSystem {
     //let particle;
     for (let i = 0; i < length; i++) {
       const particle = this.active_particles[i];
+      if (particle.time_rem <= 0) continue;
       this.ctx.fillStyle = particle.color;
       size = lerp(
         particle.size,

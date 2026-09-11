@@ -35,7 +35,6 @@ export class Ankor {
     this.uPolygon.pos = pos;
   }
   setFakeColor(new_color){
-    console.log("iopjerygtgresdiop");
     this.lPolygon.color = new_color;
     this.uPolygon.color = new_color;
   }
@@ -44,7 +43,6 @@ export class Ankor {
     const pShape = player.getShape();
     const pLength = pShape.length;
     const uPLength = uPShape.length;
-    console.log(pLength, uPLength);
     for (let i = 0; i < uPShape.length-1; i++) {
       const l1 = [uPShape[i], uPShape[(i+1)%uPLength]];
       for (let j = 0; j < pShape.length; j++) {
