@@ -16,7 +16,7 @@ export class Polygon {
       v = vector2dAdd(v, this.modelBody[i])
     v.x /= this.modelBody.length;
     v.y /= this.modelBody.length;
-    v = vector2dAdd(v, this.pos);
+    //v = vector2dAdd(v, this.pos);
     return v;
   }
 
@@ -30,6 +30,6 @@ export class Polygon {
   }
 
   draw(ctx, co, doesClose=true){
-    drawVectorPolygon(ctx, this.pos, rotateVectorShape(this.modelBody, this.center, this.rot), co, doesClose, this.color, this.fillColor);
+    drawVectorPolygon(ctx, this.pos, rotateVectorShape(this.modelBody,  this.center, this.rot), co, doesClose, this.color, this.fillColor);
   }
 };
