@@ -63,7 +63,6 @@ function convex_hull(points){
 export class FallingBody extends Polygon{
   constructor(pos, modelBody, internal_color, particles_color, strength, ast_speed){
     super(pos, modelBody);
-    this.rotSpeed = Math.random()*0.02;
     this.internal_color = internal_color;
     this.fillColor = internal_color;
     this.particles_color = particles_color;
@@ -72,6 +71,7 @@ export class FallingBody extends Polygon{
     const center =  vector2dAdd(this.center, this.pos); 
     this.sizeAsteroid = (center.x - asteroid_shape[0].x)*(center.x - asteroid_shape[0].x) + (center.y - asteroid_shape[0].y)*(center.y - asteroid_shape[0].y);
     this.speed = ast_speed;
+    this.rotSpeed = (1-0.1*Math.random())*7.0*Math.PI/this.sizeAsteroid;
   }
 
   update(perlin, particles, dt=1){
@@ -95,7 +95,6 @@ export class FallingBody extends Polygon{
 
   emitDeathParticles(particles){
     const center = this.pos;
-    console.log("thisShitWork");
     for (let i = 0; i < 100; i++) {
       const vel = make_vector2d(Math.random() * 2 - 1,  Math.random() * 2 - 1 );
       particles.emit(

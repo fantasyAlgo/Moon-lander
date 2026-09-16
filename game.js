@@ -7,7 +7,7 @@ import { collisionSAT } from "./helpers/collisions.js";
 import { ANKOR_DIST_MULTIPLIER, BASIC_ANKOR_DISTANCE, biomeData, INITIAL_FUEL, MIN_HEIGHT_DUST, N_DIFFERENT_TREES, PROB_TREE, SATResult, SPAWN_ASTEROID_PROB } from "./settings.js";
 import { make_tree } from "./helpers/trees.js";
 import { make_vector2d, vector2Distance } from "./helpers/Vector2.js";
-import { Rover } from "./helpers/Rover.js";
+import { makeNewRover, Rover } from "./helpers/Rover.js";
 import { Ankor } from "./helpers/Ankor.js";
 
 
@@ -54,7 +54,8 @@ export class Game {
         70, 
         3 + Math.floor(Math.random()*4), 1.2 + Math.random()/2.0));
 
-    this.rover = new Rover({x: 0.0, y: 100});
+
+    this.rovers = [makeNewRover(this.player.pos.x, this.perlin, 5000.0)];
 
     this.camera_offset = make_vector2d(-this.player.pos.x + this.canvas.width / 2.0, -this.player.pos.y + this.canvas.height / 2);
     this.ankor = new Ankor(0, BASIC_ANKOR_DISTANCE, this.perlin);
@@ -101,7 +102,8 @@ export class Game {
 
     const pos_x = getFloorValue(this.perlin, 0.0);
     this.player.updatePosition(make_vector2d(0.0, pos_x-1200.0));   //mov100e(0, -400);
-    this.rover = new Rover({x: 0.0, y: 100});
+
+    this.rovers = [makeNewRover(this.player.pos.x, this.perlin, 5000.0)];
 
     this.ankor = new Ankor(0, BASIC_ANKOR_DISTANCE, this.perlin);
     this.fake_ankor = new Ankor(0, 100000000000, this.perlin);
@@ -218,25 +220,7 @@ export class Game {
       }
     });
   }
-
-  update(dt=1){
-    this.total_time += dt;
-    const mouse_dir = make_vector2d(-this.mouse_coord.x + this.canvas.width / 2.0, -this.mouse_coord.y + this.canvas.height / 2);
-    if (this.stop) return;
-
-    const collision_indx = this.rover.update(this.perlin, this.asteroids, dt);
-    if (collision_indx >= 0){
-      this.asteroids[collision_indx].emitDeathParticles(this.particles);
-      this.asteroids.splice(collision_indx, 1);
-    }
-
-
-    let attractPoint = this.generateAttractPoints();
-    if (this.checkFloorCollision(attractPoint)){
-      this.updateIfDead(dt);
-      return true;
-    };
-
+  updateAnkorCollision(){
     const ankorCollision = this.ankor.checkPlayerCollision(this.player);
     if (ankorCollision != -1){
       console.log(ankorCollision);
@@ -251,10 +235,37 @@ export class Game {
         this.ankor = new Ankor(this.player.pos.x, BASIC_ANKOR_DISTANCE + this.ankor_dist, this.perlin);
         this.points += 1;
         this.player.fuel += INITIAL_FUEL*(this.points+1);
+        if (this.points > 3){
+          this.rovers.push(makeNewRover(this.ankor.x, this.perlin, 2000.0) )
+        }
       }
     }
 
+  }
 
+  update(dt=1){
+    this.total_time += dt;
+    const mouse_dir = make_vector2d(-this.mouse_coord.x + this.canvas.width / 2.0, -this.mouse_coord.y + this.canvas.height / 2);
+    if (this.stop) return;
+
+    for (let i = 0; i < this.rovers.length; i++) {
+      const dist = Math.abs(this.rovers[i].bodyBase1.x - this.player.pos.x);
+      if ( dist > 1500 ) continue;
+
+      const collision_indx = this.rovers[i].update(this.perlin, this.asteroids, dt);
+      if (collision_indx >= 0){
+        this.asteroids[collision_indx].emitDeathParticles(this.particles);
+        this.asteroids.splice(collision_indx, 1);
+      }     
+    }
+
+    let attractPoint = this.generateAttractPoints();
+    if (this.checkFloorCollision(attractPoint)){
+      this.updateIfDead(dt);
+      return true;
+    };
+
+    this.updateAnkorCollision();
     this.player.update(dt, mouse_dir, this.is_boosting && this.boost_time > 0);
     this.particles.update(dt);
     this.updateAsteroids(dt);
@@ -368,7 +379,7 @@ export class Game {
     });
     this.drawTrees(ctx);
     this.drawTerrain(ctx);
-    this.rover.Draw(ctx, this.camera_offset);
+    this.rovers.forEach( (rover) => {rover.Draw(ctx, this.camera_offset)});
   }
 
 }

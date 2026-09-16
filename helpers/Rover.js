@@ -89,17 +89,16 @@ export class Rover {
     c.y /= this.head.length;
     return c;
   }
-  updateBullet(coll, asteroids){
+  updateBullet(coll, asteroids, dt){
     const pointerShape = rotateVectorShape(this.pointer, this.body[0], this.angle);
     const bCenter = vector2dAdd(pointerShape[0], this.bodyBase1);
-    let bestDistance = 401;
+    let bestDistance = 500;
     let bestDir = make_vector2d(0.0, 0.0);
     for (let i = 0; i < asteroids.length; i++) {
       if (i == coll) continue;
       const el = asteroids[i];
-      const center = vector2dAdd(el.getCenter(), el.dir);
+      const center = vector2dAdd(el.pos, vector2dMultScalar(el.dir, 2.0*dt));
       const dist = vector2Distance(center, bCenter);
-      //console.log("dist: ", vector2Distance(c, bCenter) );
       if (dist < bestDistance && this.bullet.dead){
         const dir = vector2dSub(center, this.bodyBase1)
         bestDistance = dist;
@@ -107,7 +106,8 @@ export class Rover {
         //this.bullet = new Bullet(bCenter, dir, 1.0);
       }
     }
-    if (bestDistance < 401){
+    if (bestDistance < 500){
+      //console.log("bullet shot");
       bestDir = vector2dNorm(bestDir);
       this.lastDirAngle = Math.atan2(bestDir.y, bestDir.x)+Math.PI;
       this.bullet = new Bullet(bCenter, bestDir, 8.0);
@@ -119,7 +119,7 @@ export class Rover {
     this.updateDir(dt);
     const c = this.bullet.update(dt, asteroids, {});
     if (!this.bullet.dead) return;
-    this.updateBullet(c, asteroids);
+    this.updateBullet(c, asteroids, dt);
     return c;
   }
 
@@ -155,4 +155,10 @@ export class Rover {
 
 } 
 
+
+export const makeNewRover = (pos, perlin, posVariant) => {
+  const roverXPos = pos + (0.5-Math.random())*posVariant;
+  console.log(perlin, pos, posVariant);
+  return new Rover({x: roverXPos, y: Math.min(getFloorValue(perlin, roverXPos), getFloorValue(perlin, roverXPos+50))-50});
+}
 

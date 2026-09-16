@@ -33,7 +33,6 @@ export class Player extends Polygon {
     this.weight = weight;
     this.goUp = false;
     this.tShape = this.getShape();
-    console.log("pla: ", player_gas);
     this.player_gas = player_gas;
   }
 
@@ -79,7 +78,6 @@ export class Player extends Polygon {
   }
   generateParticles(pSystem, is_boosting, boost_time, frame ){
     let nParticles = 1 + (Math.random() > 0.5);
-    console.log(frame)
     if (frame < 60) nParticles = 2;
     if (frame < 30) nParticles = 3; 
     const isBoostOn = is_boosting && boost_time > 0;
